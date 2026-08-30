@@ -1,0 +1,15 @@
+{
+  "chrome.home": "Accueil",
+  "chrome.backToList": "Retour à la liste",
+  "chrome.empty": "Rien à afficher pour le moment.",
+  "chrome.loading": "Chargement…",
+  "chrome.notFound": "Cette fiche n’existe pas.",
+  "chrome.previous": "Précédent",
+  "chrome.next": "Suivant",
+  "chrome.page": "Page {page} sur {total}",
+  "layout.skipToContent": "Aller au contenu",
+  "layout.navigationLabel": "Navigation principale",
+  "layout.languageLabel": "Langue",
+  "layout.hyperlinksLabel": "Liens connexes",
+  "layout.sponsorsLabel": "Partenaires"
+}

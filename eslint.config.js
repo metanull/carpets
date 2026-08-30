@@ -7,6 +7,9 @@ const globals = {
   console: 'readonly',
   process: 'readonly',
   URL: 'readonly',
+  // The featured-partners carousel rotates on a timer.
+  setInterval: 'readonly',
+  clearInterval: 'readonly',
 }
 
 export default [
