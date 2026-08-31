@@ -11,31 +11,27 @@ import BackLink from '../components/BackLink.vue'
 // The partners list, grouped by country with an A–Z / Z–A toggle, exactly as
 // legacy's PartnersPage.vue.
 //
-// ── Partners that hold nothing are listed, because legacy lists them ────────
+// ── A partner that holds nothing is still listed ────────────────────────────
 // Legacy's partner query is a three-branch UNION and the third one — its own
 // comment calls it MWNF-384 — selects every museum *created under the
-// gallery's own project*, whether or not it holds a member item. Carpets is
-// the first gallery where that branch fires: `jo/Mus31` (Greater Amman
-// Municipality) and `pt/Mus31` (Centro de História d'Aquém e d'Além-Mar) were
-// both created under DCA, both come back from the live `/partners` with
-// `hasObjects: 0`, and both are in the package with `item_count: 0`.
+// gallery's own project*, whether or not it holds a member item. A gallery
+// with native content therefore lists museums that hold none of its members,
+// and the package carries them with `item_count: 0`.
 //
-// So they get a full entry here — name, city, logo, "Read more" — and only the
-// "View objects" link is withheld, which is exactly what legacy does with
+// Such a partner gets a full entry — name, city, logo, "Read more" — and only
+// the "View objects" link is withheld, which is exactly what legacy does with
 // `v-if="partner.hasObjects"`. Hiding the museums themselves would be a
-// regression against the site this viewer reproduces.
+// regression against the site this reproduces.
 //
 // The one place this differs from legacy is the object-count line, which is
-// this viewer's addition (legacy prints no count on the partners page). Left
+// this website's addition (legacy prints no count on the partners page). Left
 // alone it would read "0 objects in this Gallery", which looks like a data
-// fault rather than a fact about the partner, so a zero-count partner gets a
-// line naming the reason it is listed instead.
+// fault rather than a fact about the partner, so it names the reason instead.
 //
 // Legacy also printed a "Partner / Affiliate" badge from `isPartner`, a flag
 // that describes a partner's relationship to a *project*, not to this gallery,
 // and `partners.project_id` in the inventory model is the museum's creating
-// project rather than that relationship. The badge is therefore omitted, as on
-// the amulets fork.
+// project rather than that relationship. The badge is therefore omitted.
 const order = ref('a-z')
 
 const grouped = computed(() => {

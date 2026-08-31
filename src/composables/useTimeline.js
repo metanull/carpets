@@ -11,20 +11,19 @@ import { yearBucketsFromRange } from './useCollection.js'
 //
 // It is also a MERGE of two chronologies rather than one table. Legacy's
 // `App\MWNF\DAO\v2\Events` unions `mwnf3.hcr` (the Discover Islamic Art country
-// chronologies, 18 timelines) with `mwnf3_sharing_history.sh_hcr` restricted to
-// exhibition 2, "Political Context" (19 timelines), and sorts the result by
-// year. The package mirrors that exactly: `timelines.json` carries 37 rows over
-// 26 countries, each tagged `source: 'mwnf3' | 'sharing_history'`, and
-// `timeline_events.json` carries all 1,390 events keyed by `country_id`.
+// chronologies) with `mwnf3_sharing_history.sh_hcr` restricted to exhibition 2,
+// "Political Context", and sorts the result by year. The package mirrors that:
+// each row of `timelines.json` is tagged `source: 'mwnf3' | 'sharing_history'`,
+// and `timeline_events.json` keys every event by `country_id`.
 //
-// Eleven countries are served by BOTH sources, so anything user-facing must key
-// on the country and never on the timeline row: the picker below is built per
+// A country can be served by BOTH sources, so anything user-facing must key on
+// the country and never on the timeline row: the picker below is built per
 // country, and `findEvents` filters on `country_id`, which is what merges the
 // two chronologies into one year-ordered list the way legacy did.
 //
 // Names and legacy codes both come from countries.json. The exporter scopes
 // that file to "member item countries ∪ their holders' countries ∪ the global
-// timeline's countries", so it covers all 26 timeline countries — the
+// timeline's countries", so it covers every timeline country — the
 // `Intl.DisplayNames` fallback below is therefore dead code for them, and is
 // kept only so a regressed package degrades to a rendered ISO code rather than
 // a raw id. The `code` countries.json ships is the country's
@@ -77,9 +76,9 @@ function nameFor(timeline) {
 /**
  * Countries that actually have a chronology, alphabetized, "All" first.
  *
- * One entry per COUNTRY, not per timeline row: the eleven countries served by
- * both `mwnf3` and `sharing_history` would otherwise appear twice in every
- * country picker on the site.
+ * One entry per COUNTRY, not per timeline row: a country served by BOTH
+ * `mwnf3` and `sharing_history` has two rows, and would otherwise appear twice
+ * in every country picker on the site.
  */
 export const timelineCountries = computed(() => {
   const byCountry = new Map()
