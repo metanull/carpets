@@ -1,0 +1,15 @@
+{
+  "chrome.home": "الرئيسية",
+  "chrome.backToList": "العودة إلى القائمة",
+  "chrome.empty": "لا يوجد ما يُعرض بعد.",
+  "chrome.loading": "جارٍ التحميل…",
+  "chrome.notFound": "هذا السجل غير موجود.",
+  "chrome.previous": "السابق",
+  "chrome.next": "التالي",
+  "chrome.page": "صفحة {page} من {total}",
+  "layout.skipToContent": "تخطَّ إلى المحتوى",
+  "layout.navigationLabel": "التنقل الرئيسي",
+  "layout.languageLabel": "اللغة",
+  "layout.hyperlinksLabel": "روابط ذات صلة",
+  "layout.sponsorsLabel": "الرعاة"
+}
