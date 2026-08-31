@@ -108,16 +108,18 @@ a { color: inherit; }
   padding: 20px 20px 0;
 }
 
-/* Source-project colour chips, mirroring legacy's backgroundColor() */
+/* Source-project colour chips, mirroring legacy's backgroundColor().
+   The table is the platform's, not this gallery's: which projects a gallery
+   draws members from is a property of the export and changes with every
+   reimport, so every key a gallery can meet is listed rather than only the
+   ones currently in use. An unlisted key would render an unstyled chip.
+   Legacy coloured any exhibition-sourced entry with $exhibitions-color. */
 .project-chip { color: #fff; padding: 1px 8px; font-size: 12px; display: inline-block; }
 .project-ISL, .project-EPM { background: var(--dia-yellow); color: #222; }
 .project-DBA, .project-BAR { background: var(--dba-blue); }
 .project-AWE, .project-awe { background: var(--sh-red); }
 .project-DCA { background: var(--dca-tan); }
 .project-GALLERIES { background: var(--g-grey); }
-/* Legacy coloured any exhibition-sourced entry with $exhibitions-color; EXTHE
-   ("The Table Is Set") is the one exhibition project carpets draws a member
-   from. */
 .project-EXTHE { background: var(--exhibitions); }
 
 .loader { padding: 40px; text-align: center; color: var(--theme-dark); }
