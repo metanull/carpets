@@ -1,7 +1,7 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
+import { useI18n } from '@metanull/viewer-core'
 import { pickSiblings, siblingUrl, legacyImage } from '../composables/useGalleryData.js'
-import { uiLang } from '../composables/useUiStrings.js'
 
 // The home page's "Visit MWNF Galleries" strip plus the other MWNF virtual
 // museums, reproducing legacy's FeaturedGalleries.vue.
@@ -13,17 +13,20 @@ import { uiLang } from '../composables/useUiStrings.js'
 // when `legacy_host` came across, a plain, non-clickable tile when it did not.
 // Nothing here constructs a URL.
 const GALLERIES = 'https://galleries.museumwnf.org'
-const MUSEUMS = [
-  { name: 'Discover Islamic Art', url: 'https://islamicart.museumwnf.org/', accent: 'var(--dia-yellow)', fg: '#222' },
-  { name: 'Discover Baroque Art', url: 'https://baroqueart.museumwnf.org/', accent: 'var(--dba-blue)', fg: '#fff' },
-  { name: 'Sharing History', url: 'https://sharinghistory.museumwnf.org/', accent: 'var(--sh-red)', fg: '#fff' },
-]
+
+const { t, locale } = useI18n()
+
+const MUSEUMS = computed(() => [
+  { name: t('gallery.project.islamicArt'), url: 'https://islamicart.museumwnf.org/', accent: 'var(--dia-yellow)', fg: '#222' },
+  { name: t('gallery.project.baroqueArt'), url: 'https://baroqueart.museumwnf.org/', accent: 'var(--dba-blue)', fg: '#fff' },
+  { name: t('gallery.project.sharingHistory'), url: 'https://sharinghistory.museumwnf.org/', accent: 'var(--sh-red)', fg: '#fff' },
+])
 
 const siblings = ref([])
 onMounted(() => { siblings.value = pickSiblings(4) })
 
 function name(sibling) {
-  return sibling.names?.[uiLang.value] ?? sibling.names?.en ?? sibling.slug
+  return sibling.names?.[locale.value] ?? sibling.names?.en ?? sibling.slug
 }
 </script>
 
@@ -31,8 +34,8 @@ function name(sibling) {
   <section id="galleries-container">
     <div id="featured-galleries">
       <div id="gallery-labels">
-        <p>Visit MWNF Galleries</p>
-        <a :href="`${GALLERIES}/list`" target="_blank" rel="noopener"><p>See more Galleries »</p></a>
+        <p>{{ $t('gallery.action.visitGalleries') }}</p>
+        <a :href="`${GALLERIES}/list`" target="_blank" rel="noopener"><p>{{ $t('gallery.action.seeMoreGalleries') }} »</p></a>
       </div>
       <div id="gallery-links">
         <component
@@ -59,7 +62,7 @@ function name(sibling) {
     </div>
 
     <div id="mwnf-museums">
-      <div id="museums-label"><p>Other Virtual Museums</p></div>
+      <div id="museums-label"><p>{{ $t('gallery.siblings.otherVirtualMuseums') }}</p></div>
       <div id="museum-links">
         <a
           v-for="museum in MUSEUMS"

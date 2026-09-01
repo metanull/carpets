@@ -71,9 +71,9 @@ function projectName(key) {
             <p class="entry-location">
               {{ [sheet(item).location, countryLabel(item.country_id)].filter(Boolean).join(', ') }}
             </p>
-            <p class="entry-project">for <span>{{ projectName(item.project_key) }}</span></p>
+            <p class="entry-project">{{ $t('gallery.results.forProject') }} <span>{{ projectName(item.project_key) }}</span></p>
             <RouterLink :to="itemRoute(item)">
-              <p class="entry-link">See Database Entry &gt;</p>
+              <p class="entry-link">{{ $t('gallery.action.seeDatabaseEntry') }} &gt;</p>
             </RouterLink>
           </div>
         </div>

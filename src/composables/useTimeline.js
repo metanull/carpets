@@ -118,10 +118,10 @@ export const eventYearRange = computed(() => {
   return [Math.min(...years), Math.max(...years)]
 })
 
-export const eventYearBuckets = computed(() => {
+export function eventYearBuckets(t) {
   const [min, max] = eventYearRange.value
-  return yearBucketsFromRange(min, max)
-})
+  return yearBucketsFromRange(min, max, t)
+}
 
 /**
  * Legacy's `/events?ic[]=&ya=&yo=` — events for a country within a year range,
@@ -153,10 +153,16 @@ export function findEvents({ countryCode, start, end }) {
     .sort((a, b) => (a.year_from - b.year_from) || (a.display_order ?? 0) - (b.display_order ?? 0))
 }
 
-/** "1193 A.D." / "502 B.C." — legacy's era suffix rule. */
-export function eraLabel(year) {
+/**
+ * "1193 A.D." / "502 B.C." — legacy's era suffix rule. The suffix is a text,
+ * the year is not, so `t` comes in from the caller like everywhere else in
+ * these composables.
+ */
+export function eraLabel(year, t) {
   if (!Number.isFinite(year) || year === 0) return ''
-  return year < 0 ? `${Math.abs(year)} B.C.` : `${year} A.D.`
+  return year < 0
+    ? `${Math.abs(year)} ${t('gallery.era.bc')}`
+    : `${year} ${t('gallery.era.ad')}`
 }
 
 /**

@@ -6,14 +6,12 @@ import SiteShell from './SiteShell.vue'
 // record happens to carry: an item sheet may offer de/el/tr that the gallery
 // chrome never did, and it offers them from the sheet's own switcher.
 //
-// English first, because viewer-core boots vue-i18n at `languages[0]` and the
-// gallery — like the legacy client before it — opens in English whatever order
-// the package happens to list its languages in. The switcher in the header
-// keeps the package's own order.
-const languages = [
-  ...(siteLanguages.includes('en') ? ['en'] : []),
-  ...siteLanguages.filter((code) => code !== 'en'),
-]
+// The list used to be forced to start with English, because the gallery opened
+// at `languages[0]`. viewer-core negotiates the opening language now — an
+// explicit `?lang=`, then the visitor's remembered choice, then their browser,
+// then English — so the package's own order stands, and it is the order of the
+// switcher in the header.
+const languages = siteLanguages
 
 export default {
   // The dataset package this website renders. Must match the alias in

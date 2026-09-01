@@ -39,16 +39,16 @@ const city = computed(() => (partner.value ? tr('partners', partner.value.id, de
     <div id="partner-objects-header">
       <p id="partner-name">{{ partnerLabel(partner.id) }}</p>
       <p id="partner-location">{{ [city, countryLabel(partner.country_id)].filter(Boolean).join(', ') }}</p>
-      <p id="partner-count">{{ page.total }} object(s) in this Gallery</p>
+      <p id="partner-count">{{ page.total }} {{ $t('gallery.partner.objectsInGallery') }}</p>
     </div>
 
     <PageLinks :page-info="page" @navigate="navigate" />
 
     <div id="content-container">
       <ObjectGrid v-if="page.rows.length" :results="page.rows" />
-      <p v-else class="no-results">This partner holds no objects in this Gallery.</p>
+      <p v-else class="no-results">{{ $t('gallery.partner.noObjects') }}</p>
       <div id="profile-link-container">
-        <RouterLink id="profile-link" :to="partnerRoute(partner)">➤ Partner Profile</RouterLink>
+        <RouterLink id="profile-link" :to="partnerRoute(partner)">➤ {{ $t('gallery.action.partnerProfile') }}</RouterLink>
       </div>
     </div>
 

@@ -12,25 +12,25 @@
 // per-section sub-banner are one PageShell section, chosen by route, so the
 // views themselves never render page chrome.
 import { computed, ref, watch } from 'vue'
+import { useI18n } from '@metanull/viewer-core'
 import { PageShell } from '@metanull/viewer-layout'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { gallery, siteLanguages, languageByCode } from './composables/useGalleryData.js'
-import { uiLang, setUiLang } from './composables/useUiStrings.js'
 import HomeBanner from './components/HomeBanner.vue'
 import SubBanner from './components/SubBanner.vue'
 
 // `language` and `update:language` are the shell contract of viewer-core: the
-// value it passes down is the vue-i18n locale, and the event it listens for
-// sets it. This site keeps its own `uiLang` alongside, because the museum
-// content strings come from the vendored MWNF catalogues rather than from
-// `locales/` — the two are kept in step here, in the one place that knows
-// about both.
+// value it passes down is the language the application is in, and the event it
+// listens for sets it. There used to be a second language here — `uiLang`, kept
+// in step with this one by hand, because the chrome came from a vendored
+// catalogue rather than from `locales/`. Both now come from the same place, so
+// there is one language and nothing to keep in step.
 //
 // `languages` is declared only so it stops here: viewer-core passes the
 // resolved language list to every shell, and forwarding it to PageShell would
 // grow a second language switcher inside the navigation bar next to the one
 // this site puts in its header.
-const props = defineProps({
+defineProps({
   language: { type: String, default: 'en' },
   languages: { type: Array, default: () => [] },
 })
@@ -39,11 +39,12 @@ defineOptions({ inheritAttrs: false })
 
 const route = useRoute()
 const router = useRouter()
+const { t, locale } = useI18n()
 
 const PORTAL = 'https://www.museumwnf.org'
 const GALLERIES = 'https://galleries.museumwnf.org'
 
-const galleryName = computed(() => gallery.names?.[uiLang.value] ?? gallery.names?.en ?? 'Gallery')
+const galleryName = computed(() => gallery.names?.[locale.value] ?? gallery.names?.en ?? '')
 const isHome = computed(() => route.name === 'home')
 const currentYear = new Date().getFullYear()
 
@@ -53,8 +54,16 @@ function submitSearch() {
   searchInput.value = ''
 }
 
-// Legacy's menu: five site sections plus the portal's My Collection.
-const navItems = ['about', 'collection', 'partners', 'timeline', 'credits']
+// Legacy's menu: five site sections plus the portal's My Collection. `route` is
+// the path segment and never a text; each label is written out so the check
+// that every entry a page asks for exists can read it.
+const navItems = computed(() => [
+  { route: 'about', label: t('gallery.nav.about') },
+  { route: 'collection', label: t('gallery.nav.collection') },
+  { route: 'partners', label: t('gallery.nav.partners') },
+  { route: 'timeline', label: t('gallery.nav.timeline') },
+  { route: 'credits', label: t('gallery.nav.credits') },
+])
 
 const menuOpen = ref(false)
 
@@ -63,19 +72,8 @@ function languageName(code) {
 }
 
 function selectLanguage(code) {
-  setUiLang(code)
   emit('update:language', code)
 }
-
-// A language chosen anywhere else (the item sheet's own switcher, a deep link)
-// must move the chrome with it.
-watch(
-  () => props.language,
-  (code) => {
-    if (code && code !== uiLang.value) setUiLang(code)
-  },
-  { immediate: true },
-)
 
 // Scroll handling. `createViewerRouter` builds the router itself and takes no
 // `scrollBehavior`, so the browser keeps the previous page's scroll offset
@@ -108,21 +106,21 @@ watch(
 
         <div id="title-container" v-if="!isHome">
           <RouterLink to="/">
-            <span id="galleries-alt-header">MWNF Galleries</span>
-            <span id="title">{{ galleryName.toUpperCase() }}</span>
+            <span id="galleries-alt-header">{{ $t('gallery.nav.galleries') }}</span>
+            <span id="title">{{ galleryName }}</span>
           </RouterLink>
         </div>
 
         <div id="portals-search-container">
           <div id="portal-links">
-            <RouterLink to="/">Home</RouterLink>
+            <RouterLink to="/">{{ $t('core.nav.home') }}</RouterLink>
             <span> | </span>
-            <a :href="`${GALLERIES}/list/1`" target="_blank" rel="noopener">All MWNF Galleries</a>
+            <a :href="`${GALLERIES}/list/1`" target="_blank" rel="noopener">{{ $t('gallery.nav.allGalleries') }}</a>
           </div>
           <div id="search-container">
             <form @submit.prevent="submitSearch">
-              <input id="search-input" type="search" v-model="searchInput" placeholder='ex. "fragment"' />
-              <button id="search-submit" type="submit" aria-label="Search">⌕</button>
+              <input id="search-input" type="search" v-model="searchInput" :placeholder="$t('gallery.search.placeholder')" />
+              <button id="search-submit" type="submit" :aria-label="$t('gallery.search.submit')">⌕</button>
             </form>
           </div>
           <!-- The gallery's four UI languages (thg_gallery_lang). Legacy pinned
@@ -132,7 +130,7 @@ watch(
             <button
               v-for="code in siteLanguages"
               :key="code"
-              :class="{ 'lang-active': code === uiLang }"
+              :class="{ 'lang-active': code === language }"
               @click="selectLanguage(code)"
             >{{ languageName(code) }}</button>
           </div>
@@ -149,21 +147,22 @@ watch(
 
     <template #navigation>
       <div id="navigation-inner">
-        <button id="hamburger" @click="menuOpen = !menuOpen" aria-label="Menu">☰</button>
+        <button id="hamburger" @click="menuOpen = !menuOpen" :aria-label="$t('gallery.nav.menu')">☰</button>
         <ul :class="{ open: menuOpen }">
-          <li v-for="item in navItems" :key="item" :class="`menu-${item}`">
-            <RouterLink :to="`/${item}`" @click="menuOpen = false">{{ item.toUpperCase() }}</RouterLink>
+          <li v-for="item in navItems" :key="item.route" :class="`menu-${item.route}`">
+            <RouterLink :to="`/${item.route}`" @click="menuOpen = false">{{ item.label }}</RouterLink>
           </li>
           <li class="menu-my-collection">
-            <a :href="`${PORTAL}/mycollection/index.php`" target="_blank" rel="noopener">MY COLLECTION</a>
+            <a :href="`${PORTAL}/mycollection/index.php`" target="_blank" rel="noopener">{{ $t('gallery.nav.myCollection') }}</a>
           </li>
         </ul>
-        <!-- The standing notice legacy shipped under the menu, verbatim. It only
-             ever existed in English, so it is pinned LTR. -->
-        <div id="database-announcement" dir="ltr">
-          <span>Tip:</span>
-          The Database tool has been replaced with the Search bar in the header. Please enter your
-          search term(s) into the bar to search the {{ galleryName }} database.
+        <!-- The standing notice legacy shipped under the menu. It used to name
+             the gallery in the middle of the sentence; the sentence now stands
+             on its own, because a text takes nothing inserted into it and a
+             translator must be able to move every word of it freely. -->
+        <div id="database-announcement">
+          <span>{{ $t('gallery.notice.tip') }}</span>
+          {{ $t('gallery.notice.databaseReplaced') }}
         </div>
       </div>
     </template>
@@ -172,12 +171,12 @@ watch(
 
     <template #footer>
       <div id="footer-links">
-        <a :href="`${PORTAL}/about`" target="_blank" rel="noopener">About MWNF</a> |
-        <a :href="`${PORTAL}/about/contact`" target="_blank" rel="noopener">Contact</a> |
-        <a :href="`${PORTAL}/about/legal-notice`" target="_blank" rel="noopener">Important Legal Notice</a> |
-        <a :href="`${PORTAL}/about/credits`" target="_blank" rel="noopener">Credits</a> |
-        <a :href="`${PORTAL}/about/cookies`" target="_blank" rel="noopener">Cookies</a> |
-        <span>© Museum With No Frontiers (MWNF) 2004–{{ currentYear }}</span>
+        <a :href="`${PORTAL}/about`" target="_blank" rel="noopener">{{ $t('gallery.footer.aboutMwnf') }}</a> |
+        <a :href="`${PORTAL}/about/contact`" target="_blank" rel="noopener">{{ $t('gallery.footer.contact') }}</a> |
+        <a :href="`${PORTAL}/about/legal-notice`" target="_blank" rel="noopener">{{ $t('gallery.footer.legalNotice') }}</a> |
+        <a :href="`${PORTAL}/about/credits`" target="_blank" rel="noopener">{{ $t('gallery.footer.credits') }}</a> |
+        <a :href="`${PORTAL}/about/cookies`" target="_blank" rel="noopener">{{ $t('gallery.footer.cookies') }}</a> |
+        <span>{{ $t('gallery.footer.copyright') }} 2004–{{ currentYear }}</span>
       </div>
     </template>
   </PageShell>
@@ -225,6 +224,8 @@ watch(
   line-height: 1.05;
   margin-top: 4px;
   overflow-wrap: break-word;
+  /* Was `.toUpperCase()` on the gallery's name; see the note on the menu. */
+  text-transform: uppercase;
 }
 
 #portals-search-container {
@@ -292,6 +293,10 @@ watch(
   color: var(--light-text);
   text-decoration: none;
   padding: 2px 4px;
+  /* Legacy upper-cased the menu in JavaScript. Doing it in CSS instead keeps
+     each entry stored in its natural case, which is the only form a translator
+     can work with — and the only form that means anything in Arabic. */
+  text-transform: uppercase;
 }
 #navigation-inner a.router-link-active { background: rgba(0, 0, 0, 0.18); }
 #database-announcement {

@@ -1,25 +1,28 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from '@metanull/viewer-core'
 import {
   gallery, legacyImage, itemById, itemLabel, partnerLabel, countryLabel, tr, defaultLang,
 } from '../composables/useGalleryData.js'
 
 // The narrow banner shown on every page but Home, with the section title
-// overlaid. Section titles are the legacy client's own literals (SubBanner.vue
-// `setHeader`) — they never came from the i18n catalogue.
+// overlaid. The titles were the legacy client's own literals (SubBanner.vue
+// `setHeader`), never catalogue entries; they are entries now, one written out
+// per branch so the check that every entry exists can see them.
 const route = useRoute()
+const { t } = useI18n()
 
 const header = computed(() => {
   const path = route.path
-  if (path.startsWith('/collection')) return 'Collection'
-  if (path.startsWith('/database-item') || path.startsWith('/search')) return 'Database'
-  if (path.startsWith('/partner')) return 'Partners & Contributors'
-  if (path.startsWith('/timeline')) return 'Timeline'
-  if (path.startsWith('/how-to-search')) return 'Database'
-  if (path.startsWith('/about')) return 'About'
-  if (path.startsWith('/credits')) return 'Credits'
-  return 'Error'
+  if (path.startsWith('/collection')) return t('gallery.section.collection')
+  if (path.startsWith('/database-item') || path.startsWith('/search')) return t('gallery.section.database')
+  if (path.startsWith('/partner')) return t('gallery.section.partners')
+  if (path.startsWith('/timeline')) return t('gallery.section.timeline')
+  if (path.startsWith('/how-to-search')) return t('gallery.section.database')
+  if (path.startsWith('/about')) return t('gallery.section.about')
+  if (path.startsWith('/credits')) return t('gallery.section.credits')
+  return t('gallery.section.error')
 })
 
 const imageUrl = computed(() => legacyImage(gallery.banner_image_path, 'hi_res'))
@@ -29,11 +32,11 @@ const failed = ref(false)
 const caption = computed(() => {
   const item = bannerItem.value
   if (!item) return null
-  const t = tr('items', item.id, defaultLang)
+  const sheet = tr('items', item.id, defaultLang)
   return {
     name: itemLabel(item),
     partner: partnerLabel(item.partner_id),
-    location: t.location ?? '',
+    location: sheet.location ?? '',
     country: countryLabel(item.country_id),
   }
 })
@@ -41,12 +44,12 @@ const caption = computed(() => {
 
 <template>
   <div id="sub-banner-image-container">
-    <img v-if="imageUrl && !failed" :src="imageUrl" :alt="caption ? `Detail from ${caption.name}` : ''" @error="failed = true" />
+    <img v-if="imageUrl && !failed" :src="imageUrl" :alt="caption ? `${t('gallery.banner.detailFrom')} ${caption.name}` : ''" @error="failed = true" />
     <div v-else class="sub-banner-fallback"></div>
     <div id="sub-banner-overlay">
       <div id="sub-banner-overlay-text">{{ header }}</div>
       <div id="sub-banner-copyright" v-if="caption">
-        <span id="sub-banner-copyright-name">Detail from {{ caption.name }}</span>
+        <span id="sub-banner-copyright-name">{{ $t('gallery.banner.detailFrom') }} {{ caption.name }}</span>
         <span>{{ [caption.partner, caption.location, caption.country].filter(Boolean).join(', ') }}</span>
       </div>
     </div>

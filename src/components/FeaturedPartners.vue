@@ -60,7 +60,7 @@ onBeforeUnmount(() => timer && clearInterval(timer))
 
 <template>
   <section id="featured-partner-container" v-if="featured.length">
-    <div id="carousel-header">Featured Partners</div>
+    <div id="carousel-header">{{ $t('gallery.partner.featured') }}</div>
     <div id="carousel">
       <div
         v-for="(entry, index) in featured"
@@ -78,10 +78,10 @@ onBeforeUnmount(() => timer && clearInterval(timer))
           </p>
           <p class="featured-description">{{ entry.description }}</p>
           <p class="featured-read-more">
-            <RouterLink :to="partnerRoute(entry.partner)">Read more &gt;&gt;</RouterLink>
+            <RouterLink :to="partnerRoute(entry.partner)">{{ $t('gallery.action.readMore') }} &gt;&gt;</RouterLink>
           </p>
           <p class="featured-view-objects" v-if="entry.partner.item_count">
-            <RouterLink :to="partnerObjectsRoute(entry.partner)">View objects &gt;&gt;</RouterLink>
+            <RouterLink :to="partnerObjectsRoute(entry.partner)">{{ $t('gallery.action.viewObjects') }} &gt;&gt;</RouterLink>
           </p>
         </div>
       </div>

@@ -4,7 +4,7 @@ import { RouterLink } from 'vue-router'
 import {
   gallery, legacyImage, itemById, itemLabel, partnerLabel, countryLabel, tr, defaultLang,
 } from '../composables/useGalleryData.js'
-import { uiLang } from '../composables/useUiStrings.js'
+import { useI18n } from '@metanull/viewer-core'
 
 // The home banner: the gallery's own banner image, captioned with the banner
 // item's sheet. Legacy resolved both from `/thg/galleries/self`'s links[2..3];
@@ -16,16 +16,17 @@ import { uiLang } from '../composables/useUiStrings.js'
 // the path ships and the host comes from config.
 const imageUrl = computed(() => legacyImage(gallery.banner_image_path, 'hi_res'))
 const bannerItem = computed(() => itemById.value.get(gallery.banner_item_id) ?? null)
-const galleryName = computed(() => gallery.names?.[uiLang.value] ?? gallery.names?.en ?? '')
+const { t, locale } = useI18n()
+const galleryName = computed(() => gallery.names?.[locale.value] ?? gallery.names?.en ?? '')
 
 const caption = computed(() => {
   const item = bannerItem.value
   if (!item) return null
-  const t = tr('items', item.id, defaultLang)
+  const sheet = tr('items', item.id, defaultLang)
   return {
     name: itemLabel(item),
     partner: partnerLabel(item.partner_id),
-    location: t.location ?? '',
+    location: sheet.location ?? '',
     country: countryLabel(item.country_id),
   }
 })
@@ -36,20 +37,20 @@ const failed = ref(false)
 
 <template>
   <div id="banner-container" @mouseover="hover = true" @mouseleave="hover = false">
-    <img v-if="imageUrl && !failed" :src="imageUrl" :alt="caption ? `Detail from ${caption.name}` : ''" @error="failed = true" />
+    <img v-if="imageUrl && !failed" :src="imageUrl" :alt="caption ? `${t('gallery.banner.detailFrom')} ${caption.name}` : ''" @error="failed = true" />
     <div v-else class="banner-fallback"></div>
 
     <div id="banner-copyright" v-if="caption && hover">
-      <span id="banner-copyright-name">Detail from {{ caption.name }}</span>
+      <span id="banner-copyright-name">{{ $t('gallery.banner.detailFrom') }} {{ caption.name }}</span>
       <span v-if="caption.partner">{{ caption.partner }}</span>
       <span>{{ [caption.location, caption.country].filter(Boolean).join(', ') }}</span>
     </div>
 
     <div id="banner-text">
-      <div id="banner-galleries-text">Discover MWNF Galleries</div>
+      <div id="banner-galleries-text">{{ $t('gallery.banner.discoverGalleries') }}</div>
       <div>
         {{ galleryName }}
-        <RouterLink to="/collection" aria-label="Go to the collection">»</RouterLink>
+        <RouterLink to="/collection" :aria-label="$t('gallery.action.goToCollection')">»</RouterLink>
       </div>
     </div>
   </div>

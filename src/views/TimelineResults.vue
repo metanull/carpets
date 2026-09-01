@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
+import { useI18n } from '@metanull/viewer-core'
 import { items, md } from '../composables/useGalleryData.js'
 import {
   findEvents, eraLabel, timelineCountries, eventYearBuckets, countryIdForCode,
@@ -14,6 +15,9 @@ import BackLink from '../components/BackLink.vue'
 // gallery page joins events to items by country and year range client-side.
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
+const yearBuckets = computed(() => eventYearBuckets(t))
+const era = (year) => eraLabel(year, t)
 
 const EVENTS_PER_PAGE = 25
 
@@ -35,7 +39,8 @@ const events = computed(() => findEvents({
 const page = computed(() => paginate(events.value, route.query.page ?? 1, EVENTS_PER_PAGE))
 
 const countryName = computed(() =>
-  timelineCountries.value.find(c => c[0] === String(route.query.c ?? 'all'))?.[1] ?? 'All Countries'
+  timelineCountries.value.find(c => c[0] === String(route.query.c ?? 'all'))?.[1]
+    ?? t('gallery.timeline.allCountries')
 )
 
 function goToResults() {
@@ -72,34 +77,36 @@ const galleryItems = computed(() => {
   <div id="timeline-results-wrapper">
     <div id="timeline-results-search-container">
       <p id="current-search">
-        Timeline | {{ route.query.start ? eraLabel(Number(route.query.start)) : 'earliest' }}
-        to {{ route.query.end ? eraLabel(Number(route.query.end)) : 'latest' }} |
-        <span>{{ countryName }} | {{ page.total }} Results</span>
+        {{ $t('gallery.section.timeline') }} |
+        {{ route.query.start ? era(Number(route.query.start)) : $t('gallery.timeline.earliest') }}
+        {{ $t('gallery.timeline.to') }}
+        {{ route.query.end ? era(Number(route.query.end)) : $t('gallery.timeline.latest') }} |
+        <span>{{ countryName }} | {{ page.total }} {{ $t('gallery.results.heading') }}</span>
       </p>
 
       <div id="search-fields">
-        <label>Start Date
+        <label>{{ $t('gallery.facet.startDate') }}
           <select class="legacy-select" v-model="start">
-            <option value="">Any</option>
-            <option v-for="d in eventYearBuckets" :key="`s${d[0]}`" :value="d[0]">{{ d[1] }}</option>
+            <option value="">{{ $t('gallery.facet.any') }}</option>
+            <option v-for="d in yearBuckets" :key="`s${d[0]}`" :value="d[0]">{{ d[1] }}</option>
           </select>
         </label>
-        <label>End Date
+        <label>{{ $t('gallery.facet.endDate') }}
           <select class="legacy-select" v-model="end">
-            <option value="">Any</option>
-            <option v-for="d in eventYearBuckets" :key="`e${d[0]}`" :value="d[0]">{{ d[1] }}</option>
+            <option value="">{{ $t('gallery.facet.any') }}</option>
+            <option v-for="d in yearBuckets" :key="`e${d[0]}`" :value="d[0]">{{ d[1] }}</option>
           </select>
         </label>
-        <label>Country
+        <label>{{ $t('gallery.facet.country') }}
           <select class="legacy-select" v-model="country">
             <option v-for="c in timelineCountries" :key="c[0]" :value="c[0]">{{ c[1] }}</option>
           </select>
         </label>
-        <button class="legacy-button" @click="goToResults()">Go</button>
+        <button class="legacy-button" @click="goToResults()">{{ $t('gallery.action.go') }}</button>
       </div>
 
       <div id="related-container" v-if="galleryItems.length">
-        <p class="related-header">RELATED CONTENT</p>
+        <p class="related-header related-header--caps">{{ $t('gallery.related.title') }}</p>
         <p>
           ➤
           <RouterLink :to="{
@@ -110,7 +117,7 @@ const galleryItems = computed(() => {
               end: route.query.end || 'any',
               page: 1,
             },
-          }">See Gallery ({{ galleryItems.length }})</RouterLink>
+          }">{{ $t('gallery.action.seeGallery') }} ({{ galleryItems.length }})</RouterLink>
         </p>
       </div>
     </div>
@@ -120,12 +127,12 @@ const galleryItems = computed(() => {
 
     <div id="timeline-results-container">
       <div id="labels-container" v-if="page.rows.length">
-        <div id="date-label">Date</div>
-        <div id="country-label">Country | Description</div>
+        <div id="date-label">{{ $t('gallery.results.date') }}</div>
+        <div id="country-label">{{ $t('gallery.results.countryDescription') }}</div>
       </div>
       <div v-if="page.rows.length">
         <div class="event-container" v-for="event in page.rows" :key="event.id">
-          <div class="year">{{ eraLabel(event.year_from) }}</div>
+          <div class="year">{{ era(event.year_from) }}</div>
           <div class="event">
             <div class="country">{{ event.countryName }}</div>
             <div class="description" v-html="md(event.text.description)"></div>
@@ -133,7 +140,7 @@ const galleryItems = computed(() => {
         </div>
       </div>
       <div id="timeline-no-results" v-else>
-        No results. Please use the drop-down fields above to start a new search.
+        {{ $t('gallery.timeline.noResults') }}
       </div>
     </div>
 
@@ -151,6 +158,9 @@ const galleryItems = computed(() => {
 #search-fields .legacy-select { margin-top: 2px; min-width: 180px; }
 #related-container { margin-top: 14px; }
 .related-header { font-weight: 700; color: var(--theme-dark); }
+/* Upper-cased here rather than in the text, which is stored in its natural
+   case so a translator can read it. */
+.related-header--caps { text-transform: uppercase; }
 #related-container a { color: var(--link-blue); }
 
 #timeline-results-container { padding: 0 20px; }
