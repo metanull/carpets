@@ -49,15 +49,15 @@ const fullMap = computed(() =>
 
 <template>
   <div class="partner-map" v-if="hasLocation">
-    <p class="map-label">Museum on the map</p>
+    <p class="map-label">{{ $t('gallery.partner.onTheMap') }}</p>
     <iframe
       :src="src"
-      :title="label ? `Map of ${label}` : 'Map'"
+      :title="label ? `${$t('gallery.partner.mapOf')} ${label}` : $t('gallery.partner.map')"
       loading="lazy"
       referrerpolicy="no-referrer"
     ></iframe>
     <p class="map-link">
-      <a :href="fullMap" target="_blank" rel="noopener">↗ Open in OpenStreetMap</a>
+      <a :href="fullMap" target="_blank" rel="noopener">↗ {{ $t('gallery.action.openInOpenStreetMap') }}</a>
     </p>
   </div>
 </template>

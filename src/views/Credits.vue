@@ -1,12 +1,16 @@
 <script setup>
-import { tHtml, dirFor } from '../composables/useUiStrings.js'
+import { I18nText } from '@metanull/viewer-core'
 import BackLink from '../components/BackLink.vue'
+
+// The credits name this gallery's own curators, photographers and translators,
+// so there is nothing generic to inherit and the entry is this website's own —
+// unlike the About page, which overloads a shared one.
 </script>
 
 <template>
   <div class="editorial">
     <BackLink />
-    <div class="prose" :dir="dirFor('galleryCredits')" v-html="tHtml('galleryCredits')"></div>
+    <I18nText class="prose" dir="auto" keypath="carpets.credits.body" />
   </div>
 </template>
 

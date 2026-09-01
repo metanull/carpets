@@ -5,7 +5,7 @@ import {
   partners, partnerRoute, partnerObjectsRoute, partnerLabel, countryLabel,
   tr, defaultLang,
 } from '../composables/useGalleryData.js'
-import { tHtml, dirFor } from '../composables/useUiStrings.js'
+import { I18nText } from '@metanull/viewer-core'
 import BackLink from '../components/BackLink.vue'
 
 // The partners list, grouped by country with an A–Z / Z–A toggle, exactly as
@@ -60,13 +60,16 @@ function city(partner) {
     <div id="partners-options-container">
       <BackLink />
       <div id="partners-order">
+        <!-- Both sentences whole, rather than one with the order appended: a
+             translator has to be able to move every word of a text, including
+             the part that used to be a value. -->
         <button class="legacy-button" @click="order = order === 'a-z' ? 'z-a' : 'a-z'">
-          Click here to sort Countries from {{ order === 'a-z' ? 'Z - A' : 'A - Z' }}
+          {{ order === 'a-z' ? $t('gallery.partner.sortDescending') : $t('gallery.partner.sortAscending') }}
         </button>
       </div>
     </div>
 
-    <div id="partners-list-description" class="prose" :dir="dirFor('galleryPartners')" v-html="tHtml('galleryPartners')"></div>
+    <I18nText id="partners-list-description" class="prose" dir="auto" keypath="gallery.partners.intro" />
 
     <div id="partners-list-wrapper">
       <section class="partners-list" v-for="[country, list] in grouped" :key="country">
@@ -79,16 +82,16 @@ function city(partner) {
               </RouterLink>
             </div>
             <div class="partner-meta" v-if="partner.item_count">
-              {{ partner.item_count }} object{{ partner.item_count === 1 ? '' : 's' }} in this Gallery
+              {{ partner.item_count }} {{ $t('gallery.partner.objectsInGallery') }}
             </div>
             <div class="partner-meta partner-meta-empty" v-else>
-              Project Partner — no objects in this Gallery
+              {{ $t('gallery.partner.noObjectsInGallery') }}
             </div>
             <div class="partner-links">
-              <RouterLink :to="partnerRoute(partner)">Read more</RouterLink>
+              <RouterLink :to="partnerRoute(partner)">{{ $t('gallery.action.readMore') }}</RouterLink>
               <template v-if="partner.item_count">
                 <span class="partner-link-divider">|</span>
-                <RouterLink :to="partnerObjectsRoute(partner)">View objects</RouterLink>
+                <RouterLink :to="partnerObjectsRoute(partner)">{{ $t('gallery.action.viewObjects') }}</RouterLink>
               </template>
             </div>
           </div>

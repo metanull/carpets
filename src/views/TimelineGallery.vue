@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
+import { useI18n } from '@metanull/viewer-core'
 import { items, countryLabel } from '../composables/useGalleryData.js'
 import { sortChronological, paginate } from '../composables/useCollection.js'
 import { countryIdForCode, eraLabel } from '../composables/useTimeline.js'
@@ -15,6 +16,8 @@ import BackLink from '../components/BackLink.vue'
 // range client-side").
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
+const era = (year) => eraLabel(year, t)
 
 const countryId = computed(() => countryIdForCode(route.params.country))
 const start = computed(() => (route.params.start === 'any' ? null : Number(route.params.start)))
@@ -43,16 +46,18 @@ function navigate(p) {
 
     <div id="gallery-header">
       <p>
-        Timeline Gallery |
-        <span>{{ countryId ? countryLabel(countryId) : 'All Countries' }}</span>
+        {{ $t('gallery.timeline.galleryHeading') }} |
+        <span>{{ countryId ? countryLabel(countryId) : $t('gallery.timeline.allCountries') }}</span>
         <span v-if="start != null || end != null">
-          | {{ start != null ? eraLabel(start) : 'earliest' }} to {{ end != null ? eraLabel(end) : 'latest' }}
+          | {{ start != null ? era(start) : $t('gallery.timeline.earliest') }}
+          {{ $t('gallery.timeline.to') }}
+          {{ end != null ? era(end) : $t('gallery.timeline.latest') }}
         </span>
       </p>
-      <p>{{ page.total }} object(s)</p>
+      <p>{{ page.total }} {{ $t('gallery.results.objects') }}</p>
       <p class="back-to-events">
         <RouterLink :to="{ name: 'timeline-results', query: { c: route.params.country, start: route.params.start === 'any' ? '' : route.params.start, end: route.params.end === 'any' ? '' : route.params.end } }">
-          ➤ Back to the events
+          ➤ {{ $t('gallery.timeline.backToEvents') }}
         </RouterLink>
       </p>
     </div>
@@ -61,7 +66,7 @@ function navigate(p) {
 
     <div id="content-container">
       <ObjectGrid v-if="page.rows.length" :results="page.rows" />
-      <p v-else class="no-results">No objects from this Gallery fall in that country and period.</p>
+      <p v-else class="no-results">{{ $t('gallery.results.noObjectsInPeriod') }}</p>
     </div>
 
     <PageLinks :page-info="page" @navigate="navigate" />
