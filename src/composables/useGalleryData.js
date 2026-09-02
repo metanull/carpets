@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue'
 import { marked } from 'marked'
+import { renderBlock, renderInline } from '@metanull/viewer-core'
 
 import manifestData from '@inventory-data/manifest.json'
 import galleryData from '@inventory-data/gallery.json'
@@ -225,14 +226,23 @@ export function pickSiblings(count = 4) {
 
 // ── Markdown ───────────────────────────────────────────────────────────────
 
+// Rendered by viewer-core, which escapes raw HTML instead of rendering it.
+// A data package holds Markdown — the importer converts the legacy HTML on
+// the way in — so a tag arriving in a field means that conversion missed it,
+// and it shows on the page as the characters it is. The fix belongs in the
+// importer; rendering it here would hide the one thing worth seeing, and it
+// would make a museum record the single input this site trusts with markup.
+//
+// mdStrip stays on marked: it lexes, it renders nothing, and it already
+// discards raw HTML nodes rather than passing them on.
 export function md(text) {
   if (!text) return ''
-  return marked.parse(text, { breaks: true })
+  return renderBlock(text, { breaks: true })
 }
 
 export function mdInline(text) {
   if (!text) return ''
-  return marked.parseInline(text)
+  return renderInline(text)
 }
 
 export function mdStrip(text) {
