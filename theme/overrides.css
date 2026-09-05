@@ -2,9 +2,8 @@
  * Escape hatch for styling beyond tokens.css.
  *
  * The legacy gallery is a fixed-width page column with edge-to-edge chrome
- * inside it — a shape PageShell's tokens alone cannot express, since they
- * assume a centred content measure and flex navigation. These four rules
- * restate the column and let each section manage its own gutters.
+ * inside it, a six-column menu bar, and an upper-cased title and menu. What a
+ * token cannot express is restated here, on PageShell's own classes.
  */
 
 /* The legacy site was a 1350px column centred on the viewport, with a drop
@@ -26,9 +25,77 @@
   z-index: 89;
 }
 
-/* The header holds a flex row of its own and the navigation a full-width
-   grid, so neither wants PageShell's own flex treatment. */
-.mwnf-header,
-.mwnf-nav {
+/* The header row: the mark, the centred title cell, the tools at the end. */
+.mwnf-header__inner {
+  min-height: 80px;
+  padding-inline: 14px 12px;
+}
+.mwnf-header__title {
+  text-transform: uppercase;
+}
+.mwnf-header__search-input {
+  margin-inline-end: 5px;
+}
+
+/* The menu: one equal column per entry, alternating the two menu shades,
+   upper-cased in CSS so each entry is stored in its natural case — the only
+   form a translator can work with, and the only form that means anything in
+   Arabic. */
+.mwnf-nav__bar {
   display: block;
+}
+.mwnf-nav__links {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  width: 100%;
+}
+.mwnf-nav__links li {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 28px;
+}
+.mwnf-nav__links li:nth-child(odd) { background: var(--theme-medium-dark); }
+.mwnf-nav__links li:nth-child(even) { background: var(--theme-light); }
+.mwnf-nav__link {
+  width: 100%;
+  text-align: center;
+  padding: 2px 4px;
+  text-transform: uppercase;
+}
+.mwnf-nav__link--active {
+  background: rgba(0, 0, 0, 0.18);
+  text-decoration: none;
+}
+.mwnf-nav__notice-title {
+  font-weight: 700;
+}
+
+/* The banner is edge to edge inside the column. */
+.mwnf-banner {
+  padding-inline: 0;
+}
+.mwnf-banner--strip .mwnf-banner__title {
+  font-weight: 700;
+}
+.mwnf-banner--strip .mwnf-banner__enter {
+  text-decoration: none;
+}
+
+/* The footer: one centred line of links and the copyright. */
+.mwnf-footer {
+  justify-content: center;
+  text-align: center;
+}
+
+@media only screen and (max-width: 974px) {
+  .mwnf-nav__links { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media only screen and (max-width: 599px) {
+  .mwnf-header__inner { min-height: 65px; }
+  .mwnf-header__lockup { flex-basis: 100%; order: 3; }
+  .mwnf-nav__links { display: none; }
+  .mwnf-nav--open .mwnf-nav__links { display: grid; grid-template-columns: 1fr; }
+  .mwnf-nav__toggle { width: 100%; justify-content: center; font-size: 20px; }
 }

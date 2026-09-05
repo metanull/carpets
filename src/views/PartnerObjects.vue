@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import {
-  items, partnerFromKey, partnerRoute, partnerLabel, countryLabel, tr, defaultLang,
+  items, partnerById, partnerRoute, partnerLabel, countryLabel, tr, defaultLang,
 } from '../composables/useGalleryData.js'
 import { sortChronological, paginate } from '../composables/useCollection.js'
 import ObjectGrid from '../components/ObjectGrid.vue'
@@ -14,19 +14,16 @@ import BackLink from '../components/BackLink.vue'
 const route = useRoute()
 const router = useRouter()
 
-const partner = computed(() => partnerFromKey(route.params.country, route.params.id))
+const partner = computed(() => partnerById.value.get(route.params.id) ?? null)
 const held = computed(() => {
   const p = partner.value
   if (!p) return []
   return sortChronological(items.value.filter(i => i.partner_id === p.id))
 })
-const page = computed(() => paginate(held.value, route.params.page ?? 1))
+const page = computed(() => paginate(held.value, route.query.page ?? 1))
 
 function navigate(p) {
-  router.push({
-    name: 'partner-objects',
-    params: { ...route.params, page: p },
-  })
+  router.push({ name: 'partner-objects', params: route.params, query: { ...route.query, page: p } })
 }
 
 const city = computed(() => (partner.value ? tr('partners', partner.value.id, defaultLang).city ?? '' : ''))

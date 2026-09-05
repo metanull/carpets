@@ -1,111 +1,89 @@
-import { ref, computed } from 'vue'
-import { marked } from 'marked'
-import { renderBlock, renderInline, useDataPackage } from '@metanull/viewer-core'
+import { computed } from 'vue'
+import {
+  byId, entityRef, mediaUrl, renderBlock, renderInline, renderPlain, useDataPackage,
+} from '@metanull/viewer-core'
 
-import manifestData from '@inventory-data/manifest.json'
-import galleryData from '@inventory-data/gallery.json'
-import itemsData from '@inventory-data/items.json'
-import tagsData from '@inventory-data/tags.json'
-import partnersData from '@inventory-data/partners.json'
-import countriesData from '@inventory-data/countries.json'
-import languagesData from '@inventory-data/languages.json'
-import dynastiesData from '@inventory-data/dynasties.json'
-import glossaryData from '@inventory-data/glossary.json'
-import timelinesData from '@inventory-data/timelines.json'
-import timelineEventsData from '@inventory-data/timeline_events.json'
+// The gallery's records, read the one way every website reads them: through
+// viewer-core, lazily. Each entity is a shared ref that stays `null` until a
+// route declaring it in `meta.entities` brings its chunk in, so importing this
+// module loads nothing, and a page pays only for what it reads. Nothing here
+// keeps a copy of a record or a translation.
 
-// ── Static entity data ─────────────────────────────────────────────────────
+const dataPackage = useDataPackage()
+export const manifest = dataPackage.manifest
+
+// ── Records ────────────────────────────────────────────────────────────────
 // Language-independent; every human-readable string lives under translations/.
 
-export const manifest = manifestData
-export const gallery = galleryData
-export const items = ref(itemsData)
-export const tags = ref(tagsData)
-export const partners = ref(partnersData)
-export const countries = ref(countriesData)
-export const languages = ref(languagesData)
-export const dynasties = ref(dynastiesData)
-export const glossary = ref(glossaryData)
-export const timelines = ref(timelinesData)
-export const timelineEvents = ref(timelineEventsData)
+export const gallery = entityRef('gallery')
+export const items = entityRef('items')
+export const tags = entityRef('tags')
+export const partners = entityRef('partners')
+export const countries = entityRef('countries')
+export const languages = entityRef('languages')
+export const dynasties = entityRef('dynasties')
+export const glossary = entityRef('glossary')
+export const timelines = entityRef('timelines')
+export const timelineEvents = entityRef('timeline_events')
 
-// The gallery's own UI languages (thg_gallery_lang). Item sheets offer more —
-// whatever languages the record itself carries — which is why languages.json
-// flags the two apart rather than shipping one list.
-export const siteLanguages = gallery.languages ?? ['en']
-export const defaultLang = siteLanguages.includes('en') ? 'en' : siteLanguages[0]
-
-// Legacy media server for the gallery chrome images only. `image_path`,
-// `banner_image_path` and `homepage_image_path` were never imported into
-// inventory storage, so the package ships the legacy path and the viewer
-// supplies the host — the one exception to the absolute-image-URL convention.
-const LEGACY_IMAGES =
-  import.meta.env.VITE_LEGACY_IMAGES_URL ?? 'https://images.museumwnf.org'
-
-/** Legacy media URL. `size` ∈ zoom | hi_res | lo_res | small. */
-export function legacyImage(path, size = 'hi_res') {
-  if (!path) return null
-  return `${LEGACY_IMAGES}/${size}/${path}`
-}
+// English is the base language of every catalogue in the platform: every
+// list, label and fallback reads it.
+export const defaultLang = 'en'
 
 // ── Lookup maps ────────────────────────────────────────────────────────────
 
-export const itemById = computed(() => new Map(items.value.map(i => [i.id, i])))
-export const partnerById = computed(() => new Map(partners.value.map(p => [p.id, p])))
-export const countryById = computed(() => new Map(countries.value.map(c => [c.id, c])))
-export const tagById = computed(() => new Map(tags.value.map(t => [t.id, t])))
-export const dynastyById = computed(() => new Map(dynasties.value.map(d => [d.id, d])))
-export const glossaryById = computed(() => new Map(glossary.value.map(g => [g.id, g])))
-export const timelineById = computed(() => new Map(timelines.value.map(t => [t.id, t])))
-export const languageByCode = computed(() => new Map(languages.value.map(l => [l.code, l])))
+export const itemById = byId('items')
+export const partnerById = byId('partners')
+export const countryById = byId('countries')
+export const tagById = byId('tags')
+export const dynastyById = byId('dynasties')
+export const glossaryById = byId('glossary')
+export const timelineById = byId('timelines')
+export const languageByCode = byId('languages', 'code')
 
-// Legacy dbUid ⇄ item. The public item URL keeps the dbUid path, which is
+// ── Routes ─────────────────────────────────────────────────────────────────
+//
+// The canonical routes carry the package id; the language never travels in
+// the path. The legacy shapes (the dbUid path of an item sheet, the country
+// and legacy id of a partner) are redirect-only entries in dataset.config.js,
+// resolved through the two lookups at the end of this section.
+
+export function itemRoute(item) {
+  return { name: 'item', params: { id: item.id } }
+}
+
+export function partnerRoute(partner) {
+  return { name: 'partner', params: { id: partner.id } }
+}
+
+export function partnerObjectsRoute(partner, page = 1) {
+  return { name: 'partner-objects', params: { id: partner.id }, query: page > 1 ? { page } : {} }
+}
+
+// Legacy dbUid ⇄ item. The legacy item URL carried the dbUid path, which is
 // exactly `backward_compatibility` with ':' swapped for '/' — the identity rule
 // in dxa-legacy-analysis.md §4.2. Matching is case-insensitive because Sharing
 // History stores its keys lowercase.
 export const itemByUid = computed(() => {
   const m = new Map()
-  for (const item of items.value) {
+  for (const item of items.value ?? []) {
     if (item.backward_compatibility) m.set(item.backward_compatibility.toLowerCase(), item)
   }
   return m
 })
 
-/** `mwnf3:objects:EPM:uk:Mus21:41` → `mwnf3/objects/EPM/uk/Mus21/41` */
-export function itemUidPath(item) {
-  return (item?.backward_compatibility ?? '').split(':').join('/')
-}
-
-/** The legacy item-sheet route for an item in a given language. */
-export function itemRoute(item, lang = defaultLang) {
-  return `/database-item/${itemUidPath(item)}/${lang}`
-}
-
-export function itemFromUidPath(path, ) {
+export function itemFromUidPath(path) {
   return itemByUid.value.get(String(path).split('/').join(':').toLowerCase()) ?? null
 }
 
-// Partner identity: `mwnf3:museums:Mus21:ua` → { legacyId: 'Mus21', country: 'ua' }.
-// Legacy's partner URL also carried a project id; the inventory model has no
-// per-partner project (partners.project_id is null for every imported museum),
-// so the route drops that segment rather than inventing one.
+// Partner identity in a legacy URL: `mwnf3:museums:Mus21:ua` → { legacyId: 'Mus21', country: 'ua' }.
 export function partnerKey(partner) {
   const parts = (partner?.backward_compatibility ?? '').split(':')
   return { legacyId: parts[2] ?? partner?.id, countryCode: parts[3] ?? '' }
 }
 
-export function partnerRoute(partner, lang = defaultLang) {
-  const { legacyId, countryCode } = partnerKey(partner)
-  return `/partner/${countryCode}/${legacyId}/${lang}`
-}
-
-export function partnerObjectsRoute(partner, page = 1) {
-  const { legacyId, countryCode } = partnerKey(partner)
-  return `/partner-objects/${countryCode}/${legacyId}/${page}`
-}
-
 export function partnerFromKey(countryCode, legacyId) {
-  return partners.value.find(p => {
+  return (partners.value ?? []).find(p => {
     const k = partnerKey(p)
     return k.legacyId === legacyId && k.countryCode === countryCode
   }) ?? null
@@ -115,12 +93,9 @@ export function partnerFromKey(countryCode, legacyId) {
 //
 // One file per entity per language; a file is simply absent when that entity
 // has no translation in that language, so every load path must tolerate a miss.
-// English is loaded eagerly (it drives every list and label); other languages
-// are loaded on demand by the item sheet and the partner profile.
-// Delegates to viewer-core's useDataPackage() — the shared, glob-based
-// loader — rather than a local copy of the same glob/cache.
+// English is loaded once (it drives every list and label); another language
+// is loaded on demand by the sheet that reads it.
 
-const dataPackage = useDataPackage()
 export const availableLanguages = dataPackage.availableLanguages
 export const loadTranslations = dataPackage.loadTranslations
 export const translations = dataPackage.translations
@@ -166,6 +141,16 @@ export function dynastyLabel(dynastyId) {
   return mdStrip(tr('dynasties', dynastyId, defaultLang).name ?? '')
 }
 
+// ── Chrome images ──────────────────────────────────────────────────────────
+//
+// `image_path`, `banner_image_path` and `homepage_image_path` were never
+// imported into inventory storage: the package ships the legacy path and the
+// address is built from the host `dataset.config.js` declares under `media`.
+
+export function chromeImage(path, size = 'hi_res') {
+  return mediaUrl(path, size)
+}
+
 // ── Sibling galleries ──────────────────────────────────────────────────────
 //
 // Decision Q3: these are reference objects, not resolved links. The exporter
@@ -175,7 +160,7 @@ export function dynastyLabel(dynastyId) {
 // active roster; the package ships the whole roster and the viewer picks.
 
 export const siblingGalleries = computed(() =>
-  (gallery.sibling_galleries ?? []).filter(g => !g.hidden)
+  (gallery.value?.sibling_galleries ?? []).filter(g => !g.hidden)
 )
 
 export function siblingUrl(sibling) {
@@ -193,48 +178,38 @@ export function pickSiblings(count = 4) {
 }
 
 // ── Markdown ───────────────────────────────────────────────────────────────
-
-// Rendered by viewer-core, which escapes raw HTML instead of rendering it.
-// A data package holds Markdown — the importer converts the legacy HTML on
-// the way in — so a tag arriving in a field means that conversion missed it,
-// and it shows on the page as the characters it is. The fix belongs in the
-// importer; rendering it here would hide the one thing worth seeing, and it
-// would make a museum record the single input this site trusts with markup.
 //
-// mdStrip stays on marked: it lexes, it renders nothing, and it already
-// discards raw HTML nodes rather than passing them on.
-export function md(text) {
+// The three renderers of viewer-core, and nothing else: a data package holds
+// Markdown, every website renders it through the same pipeline, and a field
+// that renders wrongly is fixed in the importer, where the data is made.
+// `md` renders a record's text with its line breaks, and takes the glossary
+// the sheet passes to highlight the terms it carries.
+
+export function md(text, { glossary } = {}) {
   if (!text) return ''
-  return renderBlock(text, { breaks: true })
+  return renderBlock(text, { breaks: true, glossary })
 }
 
-export function mdInline(text) {
+export function mdInline(text, { glossary } = {}) {
   if (!text) return ''
-  return renderInline(text)
+  return renderInline(text, { glossary })
 }
 
 export function mdStrip(text) {
   if (!text) return ''
-  const walk = (tokens) => tokens.map(t => {
-    if (t.tokens?.length) return walk(t.tokens)
-    if (t.type === 'image') return t.text ?? ''
-    if (t.type === 'html') return ''
-    if (t.type === 'br' || t.type === 'softbreak') return ' '
-    return t.text ?? ''
-  }).join('')
-  return walk(marked.Lexer.lexInline(text))
+  return renderPlain(text)
 }
 
 export function useGalleryData() {
   return {
     manifest, gallery, items, tags, partners, countries, languages,
     dynasties, glossary, timelines, timelineEvents,
-    siteLanguages, defaultLang,
+    defaultLang,
     itemById, partnerById, countryById, tagById, dynastyById, glossaryById,
     timelineById, languageByCode, itemByUid,
-    itemUidPath, itemRoute, itemFromUidPath,
+    itemRoute, itemFromUidPath,
     partnerKey, partnerRoute, partnerObjectsRoute, partnerFromKey,
-    legacyImage,
+    chromeImage,
     loadTranslations, translations, tr, availableLanguages, loadEnglish,
     itemLabel, countryLabel, partnerLabel, dynastyLabel,
     siblingGalleries, siblingUrl, pickSiblings,
