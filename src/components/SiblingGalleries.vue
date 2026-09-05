@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, onMounted } from 'vue'
-import { useI18n } from '@metanull/viewer-core'
-import { pickSiblings, siblingUrl, legacyImage } from '../composables/useGalleryData.js'
+import { useI18n, useSiteConfig } from '@metanull/viewer-core'
+import { pickSiblings, siblingUrl, chromeImage } from '../composables/useGalleryData.js'
 
 // The home page's "Visit MWNF Galleries" strip plus the other MWNF virtual
 // museums, reproducing legacy's FeaturedGalleries.vue.
@@ -12,14 +12,14 @@ import { pickSiblings, siblingUrl, legacyImage } from '../composables/useGallery
 // the import carried, and this component renders a tile either way: an anchor
 // when `legacy_host` came across, a plain, non-clickable tile when it did not.
 // Nothing here constructs a URL.
-const GALLERIES = 'https://galleries.museumwnf.org'
-
 const { t, locale } = useI18n()
+const { links } = useSiteConfig()
+const GALLERIES = links.galleries
 
 const MUSEUMS = computed(() => [
-  { name: t('gallery.project.islamicArt'), url: 'https://islamicart.museumwnf.org/', accent: 'var(--dia-yellow)', fg: '#222' },
-  { name: t('gallery.project.baroqueArt'), url: 'https://baroqueart.museumwnf.org/', accent: 'var(--dba-blue)', fg: '#fff' },
-  { name: t('gallery.project.sharingHistory'), url: 'https://sharinghistory.museumwnf.org/', accent: 'var(--sh-red)', fg: '#fff' },
+  { name: t('gallery.project.islamicArt'), url: `${links.islamicArt}/`, accent: 'var(--dia-yellow)', fg: '#222' },
+  { name: t('gallery.project.baroqueArt'), url: `${links.baroqueArt}/`, accent: 'var(--dba-blue)', fg: '#fff' },
+  { name: t('gallery.project.sharingHistory'), url: `${links.sharingHistory}/`, accent: 'var(--sh-red)', fg: '#fff' },
 ])
 
 const siblings = ref([])
@@ -51,7 +51,7 @@ function name(sibling) {
           <img
             v-if="sibling.image_path"
             class="gallery-image"
-            :src="legacyImage(sibling.image_path, 'lo_res')"
+            :src="chromeImage(sibling.image_path, 'lo_res')"
             :alt="name(sibling)"
             loading="lazy"
           />

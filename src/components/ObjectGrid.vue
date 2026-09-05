@@ -1,9 +1,12 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useI18n } from '@metanull/viewer-core'
 import {
   itemRoute, itemLabel, partnerLabel, countryLabel, tr, defaultLang,
 } from '../composables/useGalleryData.js'
+
+const { t } = useI18n()
 
 // The results grid shared by collection results, free-text search, partner
 // objects and the timeline gallery — one component in legacy too
@@ -15,21 +18,23 @@ defineProps({
 const hovered = ref(-1)
 
 // Legacy read these off the API, which read `mwnf3.projectnames`. The map is
-// the whole table's English row rather than the projects this gallery happens
-// to borrow from, because that set is a property of the export and moves with
-// every reimport. Unlisted keys fall back to the key itself.
-const PROJECT_NAMES = {
-  ISL: 'Discover Islamic Art',
-  EPM: 'Explore Islamic Art Collections',
-  DBA: 'Discover Baroque Art',
-  BAR: 'Discover Baroque Art',
-  AWE: 'Sharing History',
-  awe: 'Sharing History',
-  DCA: 'Discover Carpet Art',
-  DGA: 'Discover Glass Art',
-  EXTHE: 'The Table Is Set',
-  GALLERIES: 'MWNF Galleries',
-}
+// the whole table rather than the projects this gallery happens to borrow
+// from, because that set is a property of the export and moves with every
+// reimport. The key on the left is data; each name on the right is a shared
+// text, written out so the check that every entry exists can read it.
+// Unlisted keys fall back to the key itself.
+const PROJECT_NAMES = computed(() => ({
+  ISL: t('gallery.project.islamicArt'),
+  EPM: t('gallery.project.explorePartners'),
+  DBA: t('gallery.project.baroqueArt'),
+  BAR: t('gallery.project.baroqueArt'),
+  AWE: t('gallery.project.sharingHistory'),
+  awe: t('gallery.project.sharingHistory'),
+  DCA: t('gallery.project.carpetArt'),
+  DGA: t('gallery.project.glassArt'),
+  EXTHE: t('gallery.project.tableIsSet'),
+  GALLERIES: t('gallery.nav.galleries'),
+}))
 
 function sheet(item) {
   return tr('items', item.id, defaultLang)
@@ -42,7 +47,7 @@ function shortDate(text) {
 }
 
 function projectName(key) {
-  return PROJECT_NAMES[key] ?? key
+  return PROJECT_NAMES.value[key] ?? key
 }
 </script>
 

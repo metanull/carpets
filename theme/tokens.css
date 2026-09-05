@@ -75,4 +75,47 @@
   --mwnf-footer-background: #504819;
   --mwnf-footer-text-color: #ffffff;
   --mwnf-footer-text-size: 0.875rem;
+  --mwnf-footer-justify: center;
+  --mwnf-footer-gap: 0.5rem;
+  --mwnf-footer-link-color: #ffffff;
+
+  /* ---------- Header: mark, title cell, links, search, switcher ---------- */
+  --mwnf-header-gap: 0.875rem;
+  --mwnf-header-eyebrow-size: 0.875rem;
+  --mwnf-header-title-line-height: 1.05;
+  --mwnf-header-tools-size: 0.875rem;
+  --mwnf-header-link-color: #ffffff;
+  --mwnf-header-links-separator: "|";
+  --mwnf-header-control-border: 2px solid #ffffff;
+  --mwnf-header-control-background: #ffffff;
+  --mwnf-header-control-text: #1a1a1a;
+  --mwnf-header-button-border: 2px solid #7e743e;
+  --mwnf-header-button-background: #7e743e;
+  --mwnf-header-button-text: #ffffff;
+  --mwnf-header-button-active-background: #7e743e;
+  --mwnf-header-button-active-text: #ffffff;
+
+  /* ---------- Banner: the tall home strip and the narrow section strip ---------- */
+  --mwnf-banner-media-background: #504819;
+  --mwnf-banner-fallback: linear-gradient(160deg, #504819, #7e743e);
+  --mwnf-banner-strip-height: 45vh;
+  --mwnf-banner-strip-max-height: 450px;
+  --mwnf-banner-strip-eyebrow-size: 30px;
+  --mwnf-banner-strip-title-size: 70px;
+  --mwnf-banner-overlay-text: #ffffff;
+  --mwnf-banner-overlay-background: rgba(80, 72, 25, 0.6);
+  --mwnf-banner-caption-background: rgba(0, 0, 0, 0.6);
+  --mwnf-banner-caption-text: rgba(255, 255, 255, 0.85);
+  --mwnf-banner-section-height: 20vh;
+  --mwnf-banner-section-max-height: 150px;
+  --mwnf-banner-section-title-size: 190%;
+
+  /* ---------- Navigation: the menu button and the standing notice ---------- */
+  --mwnf-nav-toggle-background: #504819;
+  --mwnf-nav-toggle-color: #ffffff;
+  --mwnf-nav-notice-margin: 0;
+  --mwnf-nav-notice-padding: 5px 15px;
+  --mwnf-nav-notice-size: 90%;
+  --mwnf-nav-notice-background: #504819;
+  --mwnf-nav-notice-color: #ffffff;
 }
