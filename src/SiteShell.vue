@@ -107,7 +107,7 @@ const sectionTitle = computed(() => SECTION_TITLES.value[section.value] ?? t('ga
     :header-title="isHome ? '' : galleryName"
     header-title-href="#/"
     :header-links="headerLinks"
-    :search="{ placeholder: t('gallery.search.placeholder'), submitLabel: t('gallery.search.submit') }"
+    :search="{ placeholder: t('gallery.search.placeholder'), submitLabel: t('catalogue.search.submit') }"
     :banner-variant="isHome ? 'strip' : 'section'"
     :banner-image="bannerImage"
     :banner-caption="bannerCaption"
