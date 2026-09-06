@@ -140,6 +140,38 @@
   --mwnf-popover-title-background: #504819;
   --mwnf-grid-card-background: rgba(80, 72, 25, 0.93);
 
+  /* ---------- Content: the lists ---------- */
+  /* The tile grid, the "filter further by" column, the summary line and the
+     page links as the legacy gallery drew them: white controls with the grey
+     border on the ivory panel, the active page in the dark olive. */
+  --mwnf-grid-columns: 3;
+  --mwnf-grid-gap: 4px;
+  --mwnf-grid-tile-background: #ffffff;
+  --mwnf-grid-card-text: #ffffff;
+  --mwnf-filter-padding: 14px;
+  --mwnf-filter-border: none;
+  --mwnf-filter-background: #fffff0;
+  --mwnf-filter-gap: 10px;
+  --mwnf-filter-title-size: 1rem;
+  --mwnf-filter-title-color: #1a1a1a;
+  --mwnf-filter-control-border: 1px solid #999999;
+  --mwnf-filter-control-background: #ffffff;
+  --mwnf-filter-control-padding: 5px;
+  --mwnf-filter-reset-background: #6b612b;
+  --mwnf-filter-reset-text: #ffffff;
+  --mwnf-summary-size: 0.9375rem;
+  --mwnf-summary-color: #1a1a1a;
+  --mwnf-summary-value-color: #1a1a1a;
+  --mwnf-summary-border: none;
+  --mwnf-summary-padding: 0;
+  --mwnf-pagination-size: 0.8125rem;
+  --mwnf-pagination-button-border: 1px solid #7e743e;
+  --mwnf-pagination-button-background: #ffffff;
+  --mwnf-pagination-button-text: #504819;
+  --mwnf-pagination-button-hover-background: #fffff0;
+  --mwnf-pagination-active-background: #6b612b;
+  --mwnf-pagination-active-text: #ffffff;
+
   /* ---------- Navigation: the menu button and the standing notice ---------- */
   --mwnf-nav-toggle-background: #504819;
   --mwnf-nav-toggle-color: #ffffff;

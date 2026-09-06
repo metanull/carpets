@@ -1,8 +1,12 @@
 import { computed } from 'vue'
+import { eraLabel, roundOutward, yearBucketsFromRange } from '@metanull/viewer-core'
 import {
   timelines, timelineEvents, countries, countryById, countryLabel, tr, defaultLang,
 } from './useGalleryData.js'
-import { yearBucketsFromRange } from './useCollection.js'
+
+// The era suffix and the century window are viewer-core's: one rule for
+// every website, re-exported here for the views that read this module.
+export { eraLabel, roundOutward }
 
 // The global country timeline, served by legacy `/v2/events`. It is
 // country-scoped and project-independent — which is why the live carpets
@@ -151,28 +155,4 @@ export function findEvents({ countryCode, start, end }) {
       text: tr('timeline_events', e.id, defaultLang),
     }))
     .sort((a, b) => (a.year_from - b.year_from) || (a.display_order ?? 0) - (b.display_order ?? 0))
-}
-
-/**
- * "1193 A.D." / "502 B.C." — legacy's era suffix rule. The suffix is a text,
- * the year is not, so `t` comes in from the caller like everywhere else in
- * these composables.
- */
-export function eraLabel(year, t) {
-  if (!Number.isFinite(year) || year === 0) return ''
-  return year < 0
-    ? `${Math.abs(year)} ${t('gallery.era.bc')}`
-    : `${year} ${t('gallery.era.ad')}`
-}
-
-/**
- * The item sheet's "Timeline for this item" window rounds the item's own dates
- * outward to the nearest century before querying, which is how a single-year
- * object still lands on a readable stretch of chronology.
- */
-export function roundOutward(start, end) {
-  const from = Number.isFinite(start) ? Math.floor(start / 100) * 100 : null
-  const last = Number.isFinite(end) ? end : start
-  const to = Number.isFinite(last) ? Math.ceil(last / 100) * 100 : null
-  return [from, to]
 }

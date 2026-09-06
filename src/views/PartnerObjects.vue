@@ -1,30 +1,28 @@
 <script setup>
 import { computed } from 'vue'
-import { useRoute, useRouter, RouterLink } from 'vue-router'
+import { useRoute, RouterLink } from 'vue-router'
+import { sortChronological, useListQuery, usePagination } from '@metanull/viewer-core'
+import { Pagination, RecordGrid } from '@metanull/viewer-layout/content'
 import {
   items, partnerById, partnerRoute, partnerLabel, countryLabel, tr, defaultLang,
 } from '../composables/useGalleryData.js'
-import { sortChronological, paginate } from '../composables/useCollection.js'
-import ObjectGrid from '../components/ObjectGrid.vue'
-import PageLinks from '../components/PageLinks.vue'
+import { PAGE_SIZE, useGridRecords } from '../composables/useCollection.js'
 import BackLink from '../components/BackLink.vue'
 
 // The member items one partner holds. Legacy paginated this at the API's page
-// size; the same 9-per-page grid is used here as for collection results.
+// size; the same nine-a-page grid is used here as for collection results.
 const route = useRoute()
-const router = useRouter()
+const gridRecords = useGridRecords()
+const { page, goToPage } = useListQuery()
 
 const partner = computed(() => partnerById.value.get(route.params.id) ?? null)
 const held = computed(() => {
   const p = partner.value
   if (!p) return []
-  return sortChronological(items.value.filter(i => i.partner_id === p.id))
+  return sortChronological((items.value ?? []).filter((i) => i.partner_id === p.id), { undated: 'first' })
 })
-const page = computed(() => paginate(held.value, route.query.page ?? 1))
-
-function navigate(p) {
-  router.push({ name: 'partner-objects', params: route.params, query: { ...route.query, page: p } })
-}
+const pageInfo = usePagination(held, { page, size: PAGE_SIZE })
+const rows = computed(() => gridRecords(pageInfo.value.rows))
 
 const city = computed(() => (partner.value ? tr('partners', partner.value.id, defaultLang).city ?? '' : ''))
 </script>
@@ -36,20 +34,21 @@ const city = computed(() => (partner.value ? tr('partners', partner.value.id, de
     <div id="partner-objects-header">
       <p id="partner-name">{{ partnerLabel(partner.id) }}</p>
       <p id="partner-location">{{ [city, countryLabel(partner.country_id)].filter(Boolean).join(', ') }}</p>
-      <p id="partner-count">{{ page.total }} {{ $t('gallery.partner.objectsInGallery') }}</p>
+      <p id="partner-count">{{ pageInfo.total }} {{ $t('gallery.partner.objectsInGallery') }}</p>
     </div>
 
-    <PageLinks :page-info="page" @navigate="navigate" />
+    <Pagination class="pages" :page-info="pageInfo" jump @navigate="goToPage" />
 
     <div id="content-container">
-      <ObjectGrid v-if="page.rows.length" :results="page.rows" />
-      <p v-else class="no-results">{{ $t('gallery.partner.noObjects') }}</p>
+      <RecordGrid :records="rows" :action-label="$t('gallery.action.seeDatabaseEntry')">
+        <template #empty><p class="no-results">{{ $t('gallery.partner.noObjects') }}</p></template>
+      </RecordGrid>
       <div id="profile-link-container">
         <RouterLink id="profile-link" :to="partnerRoute(partner)">➤ {{ $t('gallery.action.partnerProfile') }}</RouterLink>
       </div>
     </div>
 
-    <PageLinks :page-info="page" @navigate="navigate" />
+    <Pagination class="pages" :page-info="pageInfo" jump @navigate="goToPage" />
   </div>
 </template>
 
@@ -59,6 +58,7 @@ const city = computed(() => (partner.value ? tr('partners', partner.value.id, de
 #partner-name { font-size: 22px; font-weight: 700; color: var(--theme-dark); }
 #partner-location { color: #555; }
 #partner-count { font-size: 13px; color: #666; margin-top: 3px; }
+.pages { padding-inline: 20px; }
 #content-container { padding: 0 20px; }
 #profile-link-container { padding-top: 16px; }
 #profile-link { color: var(--link-blue); }
