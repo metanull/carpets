@@ -110,6 +110,36 @@
   --mwnf-banner-section-max-height: 150px;
   --mwnf-banner-section-title-size: 190%;
 
+  /* ---------- Content: the record page ---------- */
+  /* The sheet as the legacy gallery set it: bold olive labels over plain
+     values, no cell borders, the photo gallery on the ivory ground. */
+  --mwnf-sheet-text-size: 0.9375rem;
+  --mwnf-sheet-label-size: 0.9375rem;
+  --mwnf-sheet-label-weight: 700;
+  --mwnf-sheet-label-color: #504819;
+  --mwnf-sheet-gap: 0.75rem;
+  --mwnf-sheet-toggle-color: #504819;
+  --mwnf-sheet-term-color: #6b612b;
+  --mwnf-sheet-term-underline: #6b612b;
+  --mwnf-sheet-section-border: 1px solid #91864d;
+  --mwnf-sheet-heading-size: 1rem;
+  --mwnf-sheet-heading-color: #504819;
+  --mwnf-credits-border: 1px solid #91864d;
+  --mwnf-credits-size: 0.875rem;
+  --mwnf-credits-color: #1a1a1a;
+  --mwnf-languages-gap: 0.125rem;
+  --mwnf-languages-button-border: 1px solid #7e743e;
+  --mwnf-languages-button-text: #504819;
+  --mwnf-languages-button-size: 0.8125rem;
+  --mwnf-languages-active-background: #6b612b;
+  --mwnf-languages-active-text: #ffffff;
+  --mwnf-media-background: #fffff0;
+  --mwnf-media-thumb-active-border: 2px solid #6b612b;
+  --mwnf-media-caption-color: #555555;
+  --mwnf-popover-border: 2px solid #6b612b;
+  --mwnf-popover-title-background: #504819;
+  --mwnf-grid-card-background: rgba(80, 72, 25, 0.93);
+
   /* ---------- Navigation: the menu button and the standing notice ---------- */
   --mwnf-nav-toggle-background: #504819;
   --mwnf-nav-toggle-color: #ffffff;
