@@ -1,13 +1,12 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
-import { useI18n } from '@metanull/viewer-core'
+import { useI18n, useListQuery, usePagination } from '@metanull/viewer-core'
+import { Pagination } from '@metanull/viewer-layout/content'
 import { items, md } from '../composables/useGalleryData.js'
 import {
   findEvents, eraLabel, timelineCountries, eventYearBuckets, countryIdForCode,
 } from '../composables/useTimeline.js'
-import { paginate } from '../composables/useCollection.js'
-import PageLinks from '../components/PageLinks.vue'
 import BackLink from '../components/BackLink.vue'
 
 // Timeline results, with the "See Gallery" cross-link legacy showed whenever
@@ -36,7 +35,10 @@ const events = computed(() => findEvents({
   start: route.query.start,
   end: route.query.end,
 }))
-const page = computed(() => paginate(events.value, route.query.page ?? 1, EVENTS_PER_PAGE))
+// The page travels in the query like every filter; the search itself keeps
+// its own form above, submitted by the button.
+const { page: currentPage, goToPage } = useListQuery({ keys: ['c', 'start', 'end'] })
+const page = usePagination(events, { page: currentPage, size: EVENTS_PER_PAGE })
 
 const countryName = computed(() =>
   timelineCountries.value.find(c => c[0] === String(route.query.c ?? 'all'))?.[1]
@@ -48,10 +50,6 @@ function goToResults() {
     name: 'timeline-results',
     query: { c: country.value || 'all', start: start.value, end: end.value },
   })
-}
-
-function navigate(p) {
-  router.push({ name: 'timeline-results', query: { ...route.query, page: p } })
 }
 
 // Member items in the same country and period — the condition legacy used to
@@ -88,13 +86,13 @@ const galleryItems = computed(() => {
         <label>{{ $t('gallery.facet.startDate') }}
           <select class="legacy-select" v-model="start">
             <option value="">{{ $t('gallery.facet.any') }}</option>
-            <option v-for="d in yearBuckets" :key="`s${d[0]}`" :value="d[0]">{{ d[1] }}</option>
+            <option v-for="d in yearBuckets" :key="`s${d.value}`" :value="d.value">{{ d.label }}</option>
           </select>
         </label>
         <label>{{ $t('gallery.facet.endDate') }}
           <select class="legacy-select" v-model="end">
             <option value="">{{ $t('gallery.facet.any') }}</option>
-            <option v-for="d in yearBuckets" :key="`e${d[0]}`" :value="d[0]">{{ d[1] }}</option>
+            <option v-for="d in yearBuckets" :key="`e${d.value}`" :value="d.value">{{ d.label }}</option>
           </select>
         </label>
         <label>{{ $t('gallery.facet.country') }}
@@ -122,7 +120,7 @@ const galleryItems = computed(() => {
     </div>
 
     <BackLink />
-    <PageLinks :page-info="page" @navigate="navigate" />
+    <Pagination class="pages" :page-info="page" jump @navigate="goToPage" />
 
     <div id="timeline-results-container">
       <div id="labels-container" v-if="page.rows.length">
@@ -143,7 +141,7 @@ const galleryItems = computed(() => {
       </div>
     </div>
 
-    <PageLinks :page-info="page" @navigate="navigate" />
+    <Pagination class="pages" :page-info="page" jump @navigate="goToPage" />
   </div>
 </template>
 
