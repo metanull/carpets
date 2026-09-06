@@ -17,9 +17,9 @@ const { links } = useSiteConfig()
 const GALLERIES = links.galleries
 
 const MUSEUMS = computed(() => [
-  { name: t('gallery.project.islamicArt'), url: `${links.islamicArt}/`, accent: 'var(--dia-yellow)', fg: '#222' },
-  { name: t('gallery.project.baroqueArt'), url: `${links.baroqueArt}/`, accent: 'var(--dba-blue)', fg: '#fff' },
-  { name: t('gallery.project.sharingHistory'), url: `${links.sharingHistory}/`, accent: 'var(--sh-red)', fg: '#fff' },
+  { name: t('core.project.islamicArt'), url: `${links.islamicArt}/`, accent: 'var(--dia-yellow)', fg: '#222' },
+  { name: t('core.project.baroqueArt'), url: `${links.baroqueArt}/`, accent: 'var(--dba-blue)', fg: '#fff' },
+  { name: t('core.project.sharingHistory'), url: `${links.sharingHistory}/`, accent: 'var(--sh-red)', fg: '#fff' },
 ])
 
 const siblings = ref([])
