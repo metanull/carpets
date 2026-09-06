@@ -4,9 +4,9 @@
 // on the route or the language — which banner shows, what the section is
 // called, what the switcher offers — and the MWNF mark in the header.
 import { computed } from 'vue'
-import { useI18n, useSiteConfig } from '@metanull/viewer-core'
+import { useI18n, useSection, useSiteConfig } from '@metanull/viewer-core'
 import { PageShell } from '@metanull/viewer-layout'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import {
   gallery, chromeImage, itemById, itemLabel, partnerLabel, countryLabel, tr, defaultLang, manifest,
 } from './composables/useGalleryData.js'
@@ -20,7 +20,6 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:language'])
 
-const route = useRoute()
 const router = useRouter()
 const { t, locale } = useI18n()
 const { links } = useSiteConfig()
@@ -28,7 +27,10 @@ const { links } = useSiteConfig()
 const galleryName = computed(() =>
   manifest.site?.names?.[locale.value] ?? manifest.site?.names?.en ?? gallery.value?.names?.en ?? ''
 )
-const isHome = computed(() => route.name === 'home')
+// The section a route declares (`meta.section` in dataset.config.js): the
+// banner title and the active menu entry both read it.
+const section = useSection()
+const isHome = computed(() => section.value === 'home')
 const currentYear = new Date().getFullYear()
 
 function submitSearch(term) {
@@ -36,8 +38,8 @@ function submitSearch(term) {
 }
 
 // Legacy's menu: five site sections plus the portal's My Collection. `route`
-// is the path segment and never a text; each label is written out so the
-// check that every entry a page asks for exists can read it.
+// is the section's path segment and its name, never a text; each label is
+// written out so the check that every entry a page asks for exists can read it.
 const navLinks = computed(() => [
   { route: 'about', label: t('gallery.nav.about') },
   { route: 'collection', label: t('gallery.nav.collection') },
@@ -47,7 +49,7 @@ const navLinks = computed(() => [
 ].map(item => ({
   label: item.label,
   href: `#/${item.route}`,
-  active: route.path === `/${item.route}` || route.path.startsWith(`/${item.route}/`) || route.path.startsWith(`/${item.route}-`),
+  active: section.value === item.route,
 })).concat([{ label: t('gallery.nav.myCollection'), href: links.myCollection, external: true }]))
 
 const headerLinks = computed(() => [
@@ -80,19 +82,18 @@ const bannerCaption = computed(() => {
   }
 })
 
-// The section title over the narrow banner, derived from the route: data
-// the site owns, rendered by the layout.
-const sectionTitle = computed(() => {
-  const path = route.path
-  if (path.startsWith('/collection')) return t('gallery.section.collection')
-  if (path.startsWith('/item') || path.startsWith('/search')) return t('gallery.section.database')
-  if (path.startsWith('/how-to-search')) return t('gallery.section.database')
-  if (path.startsWith('/partner')) return t('gallery.section.partners')
-  if (path.startsWith('/timeline')) return t('gallery.section.timeline')
-  if (path.startsWith('/about')) return t('gallery.section.about')
-  if (path.startsWith('/credits')) return t('gallery.section.credits')
-  return t('gallery.section.error')
-})
+// The section title over the narrow banner: the section the route declares,
+// named — each name written out for the check; a route with no section is
+// the error page.
+const SECTION_TITLES = computed(() => ({
+  collection: t('gallery.section.collection'),
+  database: t('gallery.section.database'),
+  partners: t('gallery.section.partners'),
+  timeline: t('gallery.section.timeline'),
+  about: t('gallery.section.about'),
+  credits: t('gallery.section.credits'),
+}))
+const sectionTitle = computed(() => SECTION_TITLES.value[section.value] ?? t('gallery.section.error'))
 </script>
 
 <template>
