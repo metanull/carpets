@@ -16,9 +16,11 @@ const { manifest } = useDataPackage()
 const languages = offeredLanguages()
 
 // Every page renders the chrome — the header title, the banner and its
-// caption — off these four; a page adds what it reads on top.
+// caption — off these four; a page adds what it reads on top. A route also
+// says which section it belongs to, and the shell reads that for the banner
+// title and the active menu entry (viewer-core's `useSection`).
 const CHROME = ['gallery', 'items', 'partners', 'countries']
-const entities = (...names) => ({ entities: [...CHROME, ...names] })
+const meta = (section, ...names) => ({ section, entities: [...CHROME, ...names] })
 
 export default {
   // The dataset package this website renders. Must match the alias in
@@ -71,40 +73,40 @@ export default {
   // and every filter travel in the query. The 'home' name replaces
   // viewer-core's generic home route.
   extraViews: [
-    { path: '/', name: 'home', component: () => import('./views/Home.vue'), meta: entities() },
-    { path: '/collection', name: 'collection', component: () => import('./views/CollectionSearch.vue'), meta: entities('tags') },
+    { path: '/', name: 'home', component: () => import('./views/Home.vue'), meta: meta('home') },
+    { path: '/collection', name: 'collection', component: () => import('./views/CollectionSearch.vue'), meta: meta('collection', 'tags') },
     {
       path: '/collection-results',
       name: 'collection-results',
       component: () => import('./views/CollectionResults.vue'),
-      meta: entities('tags', 'timelines'),
+      meta: meta('collection', 'tags', 'timelines'),
     },
     {
       path: '/item/:id',
       name: 'item',
       component: () => import('./views/ItemSheet.vue'),
-      meta: entities('languages', 'dynasties', 'glossary', 'timelines', 'timeline_events'),
+      meta: meta('database', 'languages', 'dynasties', 'glossary', 'timelines', 'timeline_events'),
     },
-    { path: '/search', name: 'search-results', component: () => import('./views/SearchResults.vue'), meta: entities() },
-    { path: '/how-to-search', name: 'search-how-to', component: () => import('./views/SearchHowTo.vue'), meta: entities() },
-    { path: '/partners', name: 'partners', component: () => import('./views/Partners.vue'), meta: entities() },
-    { path: '/partner/:id', name: 'partner', component: () => import('./views/PartnerProfile.vue'), meta: entities('languages') },
-    { path: '/partner/:id/objects', name: 'partner-objects', component: () => import('./views/PartnerObjects.vue'), meta: entities() },
-    { path: '/timeline', name: 'timeline', component: () => import('./views/Timeline.vue'), meta: entities('timelines', 'timeline_events') },
+    { path: '/search', name: 'search-results', component: () => import('./views/SearchResults.vue'), meta: meta('database') },
+    { path: '/how-to-search', name: 'search-how-to', component: () => import('./views/SearchHowTo.vue'), meta: meta('database') },
+    { path: '/partners', name: 'partners', component: () => import('./views/Partners.vue'), meta: meta('partners') },
+    { path: '/partner/:id', name: 'partner', component: () => import('./views/PartnerProfile.vue'), meta: meta('partners', 'languages') },
+    { path: '/partner/:id/objects', name: 'partner-objects', component: () => import('./views/PartnerObjects.vue'), meta: meta('partners') },
+    { path: '/timeline', name: 'timeline', component: () => import('./views/Timeline.vue'), meta: meta('timeline', 'timelines', 'timeline_events') },
     {
       path: '/timeline-results',
       name: 'timeline-results',
       component: () => import('./views/TimelineResults.vue'),
-      meta: entities('timelines', 'timeline_events'),
+      meta: meta('timeline', 'timelines', 'timeline_events'),
     },
     {
       path: '/timeline/gallery',
       name: 'timeline-gallery',
       component: () => import('./views/TimelineGallery.vue'),
-      meta: entities('timelines', 'timeline_events'),
+      meta: meta('timeline', 'timelines', 'timeline_events'),
     },
-    { path: '/about', name: 'about', component: () => import('./views/About.vue'), meta: entities() },
-    { path: '/credits', name: 'credits', component: () => import('./views/Credits.vue'), meta: entities() },
+    { path: '/about', name: 'about', component: () => import('./views/About.vue'), meta: meta('about') },
+    { path: '/credits', name: 'credits', component: () => import('./views/Credits.vue'), meta: meta('credits') },
   ],
 
   // The legacy URL shapes, redirect-only, so a legacy address pasted after
