@@ -14,7 +14,7 @@
     "namespace": "carpets"
   },
   "dependencies": {
-    "@metanull/carpets-data": "^1.0.2",
+    "@metanull/carpets-data": "^1.0.6",
     "@metanull/viewer-core": "^1.6.0",
     "@metanull/viewer-i18n": "^1.6.0",
     "@metanull/viewer-layout": "^2.1.0",
