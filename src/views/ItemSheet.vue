@@ -1,8 +1,8 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
-import { projectName, searchGlossary, useI18n, useSiteConfig } from '@metanull/viewer-core'
-import { BackLink, RecordLanguages, RelatedRecords, SheetSection } from '@metanull/viewer-layout/content'
+import { projectName, useI18n, useSiteConfig } from '@metanull/viewer-core'
+import { BackLink, DynastyList, GlossaryTool, RecordLanguages, RelatedRecords, SheetSection } from '@metanull/viewer-layout/content'
 import { RecordView } from '@metanull/viewer-layout/views'
 import {
   labelOf, partnerById, partnerRoute, dynastyById, translations, defaultLang, md, itemById,
@@ -18,8 +18,9 @@ import { itemSheet } from '../composables/sheet.js'
 // citation and the related records are the view's. What this page owns
 // fills the view's slots — the blocks only a gallery has: the source database
 // and the portal links, the partner link in the sheet, the related-content
-// container with the timeline and glossary tools, the dynasty popouts, the
-// cross-references to sibling sites, and the print action.
+// container (the layout's `GlossaryTool` and `DynastyList` inside it, a
+// local timeline popout, the cross-references to sibling sites) and the
+// print action.
 
 const props = defineProps({ id: { type: String, required: true } })
 
@@ -52,19 +53,24 @@ const galleryRefs = (record) => (record.gallery_references ?? []).filter((g) => 
 // dropped, so they are shown here.
 const exhibitionRefs = (record) => (record.gallery_references ?? []).filter((g) => g.kind === 'exhibition').sort(byName)
 
-// Popouts: timeline, glossary tool, one per dynasty.
+// The one popout still built here: the timeline. Glossary and dynasty are
+// now `GlossaryTool`/`DynastyList`'s own native `<details>` toggles below.
 const openPopup = ref(null)
 function togglePopup(which) {
   openPopup.value = openPopup.value === which ? null : which
 }
 
-const dynastyEntries = (record, language) =>
-  (record.dynasty_ids ?? [])
-    .map((id) => {
-      const translated = translations('dynasties', language)[id] ?? translations('dynasties', defaultLang)[id] ?? {}
-      return { id, record: dynastyById.value.get(id), ...translated }
-    })
-    .filter((d) => d.history)
+// `DynastyList` wants the raw records plus a `tr` function, not the merged
+// shape the local popouts used to build: it renders one `DynastyPopout` per
+// entry regardless, so the "has a history to show" filter stays here.
+function dynastyTranslation(dynasty, language) {
+  return translations('dynasties', language)[dynasty.id] ?? translations('dynasties', defaultLang)[dynasty.id] ?? {}
+}
+function dynastiesFor(record, language) {
+  return (record.dynasty_ids ?? [])
+    .map((id) => dynastyById.value.get(id))
+    .filter((d) => d && dynastyTranslation(d, language).history)
+}
 
 const timelineCountry = ref('')
 watch(item, (it) => { timelineCountry.value = it ? (countryCodeOf(it.country_id) ?? 'all') : 'all' }, { immediate: true })
@@ -80,10 +86,6 @@ const itemEvents = computed(() => {
   if (from == null) return []
   return findEvents({ country: timelineCountry.value, begin: from, end: to })
 })
-
-const glossaryInput = ref('')
-const glossaryMatches = (language) => searchGlossary(glossaryInput.value, language)
-const selectedGlossary = ref(null)
 
 // Legacy's "As PDF (including images)" was the browser's own print dialog.
 function printSheet() {
@@ -178,44 +180,14 @@ function printSheet() {
         </div>
 
         <!-- Glossary tool -->
-        <div>
-          <p class="related-line clickable" @click="togglePopup('glossaryTool')">➤ {{ t('record.glossary.tool') }}</p>
-          <div class="popout" v-if="openPopup === 'glossaryTool'">
-            <div class="popout-close" @click="openPopup = null">✕</div>
-            <div class="popout-title">{{ t('record.glossary.heading') }}</div>
-            <div class="popout-instructions">{{ t('record.glossary.instructions') }}</div>
-            <input class="glossary-input" type="text" v-model="glossaryInput" />
-            <ul class="glossary-list" v-if="glossaryInput && !selectedGlossary">
-              <li v-for="hit in glossaryMatches(language)" :key="hit.id" @click="selectedGlossary = hit; glossaryInput = hit.spelling">{{ hit.spelling }}</li>
-            </ul>
-            <div class="popout-scroll" v-if="selectedGlossary">
-              <p class="info-label">{{ t('record.glossary.definition') }}</p>
-              <div v-html="md(selectedGlossary.definition)"></div>
-            </div>
-          </div>
-        </div>
+        <GlossaryTool :language="language" />
 
         <!-- Dynasties -->
-        <div v-if="dynastyEntries(record, language).length">
-          <p class="related-sub">{{ t('record.dynasty.list') }}</p>
-          <div v-for="dynasty in dynastyEntries(record, language)" :key="dynasty.id">
-            <p class="related-line clickable" @click="togglePopup(`dynasty:${dynasty.id}`)">➤ {{ dynasty.name }}</p>
-            <div class="popout" v-if="openPopup === `dynasty:${dynasty.id}`">
-              <div class="popout-close" @click="openPopup = null">✕</div>
-              <div class="popout-title">{{ t('record.dynasty.heading') }}</div>
-              <div class="popout-scroll">
-                <div class="dynasty-name">{{ dynasty.name }}</div>
-                <p v-if="dynasty.also_known_as">{{ dynasty.also_known_as }}</p>
-                <p v-if="dynasty.area">{{ dynasty.area }}</p>
-                <p v-if="dynasty.record?.from_ad != null">
-                  AH {{ dynasty.record.from_ah }}–{{ dynasty.record.to_ah }} /
-                  AD {{ dynasty.record.from_ad }}–{{ dynasty.record.to_ad }}
-                </p>
-                <div v-html="md(dynasty.history)"></div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <DynastyList
+          :heading="t('record.dynasty.list')"
+          :dynasties="dynastiesFor(record, language)"
+          :tr="(d) => dynastyTranslation(d, language)"
+        />
 
         <!-- Audio / video -->
         <SheetSection v-if="record.media?.length" :heading="t('record.related.audioVideo')">
@@ -354,11 +326,9 @@ function printSheet() {
 .popout-empty { color: #777; font-style: italic; }
 .timeline-event { display: flex; gap: 10px; padding: 5px 0; border-bottom: 1px solid #eee; }
 .timeline-date { flex: 0 0 90px; font-weight: 700; }
-.dynasty-name { font-weight: 700; font-size: 16px; margin-bottom: 6px; }
-.glossary-input { width: calc(100% - 24px); margin: 0 12px 8px; padding: 5px; font-family: inherit; border: 1px solid var(--theme-medium); }
-.glossary-list { list-style: none; margin: 0 12px 10px; max-height: 180px; overflow: auto; border: 1px solid var(--theme-light); }
-.glossary-list li { padding: 4px 8px; cursor: pointer; }
-.glossary-list li:hover { background: var(--background-color); }
+
+.database-page :deep(.mwnf-glossary-tool),
+.database-page :deep(.mwnf-dynasty-list) { margin-top: 14px; }
 
 @media only screen and (max-width: 849px) {
   .database-page :deep(.mwnf-record__main) { display: block; }
