@@ -157,6 +157,34 @@ describe('website smoke test', () => {
     app.unmount()
   }, 60000)
 
+  // metanull/carpets#42: the composed entrance's own country control writes
+  // the inventory id (`grc`), not the legacy two-letter code (`gr`) the
+  // gallery's own deep links carry — `countryIdForCode` used to answer
+  // nothing for an id, so every event matched instead of Greece's own. Both
+  // addresses must produce the same rows and the same gallery count.
+  it('filters the timeline the same way on the inventory id as on the legacy code', async () => {
+    const { app, host } = await mountSite('#/timeline-results?country=grc')
+    await vi.waitFor(() => expect(host.querySelectorAll('.mwnf-timeline__row').length).toBe(11), { timeout: 20000 })
+    expect(host.querySelector('.mwnf-summary').textContent).toContain('11')
+    await vi.waitFor(() => expect(host.textContent).toContain('Filiki Etaireia'), { timeout: 20000 })
+    expect(host.querySelector('.mwnf-timeline__gallery').textContent).toContain('9')
+    app.unmount()
+  }, 60000)
+
+  it("submits the timeline entrance's country control (an id) to a results address that actually filters", async () => {
+    const { app, host } = await mountSite('#/timeline')
+    await vi.waitFor(() => expect(host.querySelector('.mwnf-facet__select')).not.toBeNull(), { timeout: 20000 })
+    // `controls: [{ key: 'country' }, { key: 'begin' }, ...]` — the country
+    // select is the first of the three the entrance renders.
+    const countrySelect = host.querySelectorAll('.mwnf-facet__select')[0]
+    countrySelect.value = 'grc'
+    countrySelect.dispatchEvent(new window.Event('change', { bubbles: true }))
+    host.querySelector('form.mwnf-timeline__filters').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
+    await vi.waitFor(() => expect(host.querySelectorAll('.mwnf-timeline__row').length).toBe(11), { timeout: 20000 })
+    expect(host.querySelector('.mwnf-timeline__caption').textContent).toContain('Greece')
+    app.unmount()
+  }, 60000)
+
   // The partner pages run on the platform's composed views
   // (metanull/viewer-layout#38, #41): the grouping, the A-Z toggle, the
   // record's language, the map and the member-items grid come from the specs
