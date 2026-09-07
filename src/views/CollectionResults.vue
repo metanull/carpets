@@ -83,8 +83,8 @@ function showTimelineLink(filters) {
           @update:model-value="apply({ [category]: $event })"
         />
         <div class="date-wrapper">
-          <FacetSelect :model-value="filters.start" :options="yearBuckets(matching, t)" :placeholder="$t('catalogue.facet.startDate')" @update:model-value="apply({ start: $event })" />
-          <FacetSelect :model-value="filters.end" :options="yearBuckets(matching, t)" :placeholder="$t('catalogue.facet.endDate')" @update:model-value="apply({ end: $event })" />
+          <FacetSelect :model-value="filters.from" :options="yearBuckets(matching, t)" :placeholder="$t('catalogue.facet.startDate')" @update:model-value="apply({ from: $event })" />
+          <FacetSelect :model-value="filters.to" :options="yearBuckets(matching, t)" :placeholder="$t('catalogue.facet.endDate')" @update:model-value="apply({ to: $event })" />
         </div>
       </FilterPanel>
 
@@ -92,7 +92,7 @@ function showTimelineLink(filters) {
         <div class="options-label">{{ $t('catalogue.results.timelineForSearch') }}</div>
         <p>
           ➤
-          <RouterLink :to="{ name: 'timeline-results', query: { country: filters.country, begin: filters.start, end: filters.end } }">
+          <RouterLink :to="{ name: 'timeline-results', query: { country: filters.country, begin: filters.from, end: filters.to } }">
             {{ $t('gallery.section.timeline') }} | {{ labelOf('countries', countryIdForCode(filters.country)) }}
           </RouterLink>
         </p>

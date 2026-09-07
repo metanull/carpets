@@ -1,56 +1,44 @@
 <script setup>
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { I18nText, useFacets, useI18n, yearBuckets } from '@metanull/viewer-core'
-import { FacetSelect } from '@metanull/viewer-layout/content'
+import { computed } from 'vue'
+import { I18nText, useFacets } from '@metanull/viewer-core'
+import { SearchFormView } from '@metanull/viewer-layout/views'
 import { items } from '../composables/useGalleryData.js'
-import { FACETS, FACET_CATEGORIES, useFacetLabels } from '../composables/useCollection.js'
+import { FACETS, FACET_CATEGORIES, FACET_LABEL_KEYS } from '../composables/useCollection.js'
 
-// The collection entrance, in legacy's shape (decision D2): one dropdown per
-// facet, over the *whole* member universe, and choosing one goes to the
-// results page. Narrowing only starts there.
-const router = useRouter()
-const { t } = useI18n()
-const labels = useFacetLabels()
-
+// The collection entrance, on the platform's composed search form
+// (`mode: 'facets'`): legacy's shape — one dropdown per facet, over the
+// *whole* member universe, choosing one navigates straight to the results —
+// is the view's own `immediate` behaviour for this mode, and the from/to
+// year buckets are its `dates: 'buckets'`. What stays here is only what
+// those two engines need fed in: the options, and which categories this
+// gallery's data actually has anything to offer for (`artist` has no
+// dropdown in dxa-client, but the exporter ships the category, so it appears
+// whenever it has a value — never a different answer, only a fuller one).
+//
+// No `howTo` on the spec: `gallery.collection.intro` already ends with its
+// own "[How to search](#/how-to-search)" link, so adding the view's own
+// would duplicate it.
 const options = useFacets(items, FACETS)
-const years = computed(() => yearBuckets(items.value ?? [], t))
-
-const selection = ref({ country: '', type: '', dynasty: '', subject: '', material: '', artist: '', start: '', end: '' })
-
-function goToResults(key, value) {
-  if (value === '') return
-  router.push({ name: 'collection-results', query: { [key]: String(value) } })
-}
-
 const visibleFacets = computed(() => FACET_CATEGORIES.filter((c) => (options.value[c] ?? []).length > 0))
+
+const collectionSearchSpec = computed(() => ({
+  mode: 'facets',
+  target: 'collection-results',
+  dates: 'buckets',
+  facets: [
+    { key: 'country', label: 'catalogue.facet.selectCountry', options: options.value.country },
+    ...visibleFacets.value.map((category) => ({ key: category, label: FACET_LABEL_KEYS[category], options: options.value[category] })),
+  ],
+}))
 </script>
 
 <template>
   <div id="collection-search-container">
-    <div id="dropdowns">
-      <div id="dropdown-label">{{ $t('catalogue.facet.filterBy') }}</div>
-      <div id="select-container">
-        <FacetSelect
-          v-model="selection.country"
-          :options="options.country"
-          :placeholder="$t('catalogue.facet.selectCountry')"
-          @update:model-value="goToResults('country', $event)"
-        />
-        <FacetSelect
-          v-for="category in visibleFacets"
-          :key="category"
-          v-model="selection[category]"
-          :options="options[category]"
-          :placeholder="labels[category]"
-          @update:model-value="goToResults(category, $event)"
-        />
-        <div id="dates-container">
-          <FacetSelect v-model="selection.start" :options="years" :placeholder="$t('catalogue.facet.startDate')" @update:model-value="goToResults('start', $event)" />
-          <FacetSelect v-model="selection.end" :options="years" :placeholder="$t('catalogue.facet.endDate')" @update:model-value="goToResults('end', $event)" />
-        </div>
-      </div>
-    </div>
+    <SearchFormView :spec="collectionSearchSpec">
+      <template #before>
+        <div id="dropdown-label">{{ $t('catalogue.facet.filterBy') }}</div>
+      </template>
+    </SearchFormView>
 
     <!-- Legacy hardcoded this copy in English and named the gallery in the
          middle of the first sentence. It is a shared entry now, and it names
@@ -61,21 +49,18 @@ const visibleFacets = computed(() => FACET_CATEGORIES.filter((c) => (options.val
 </template>
 
 <style scoped>
-#collection-search-container {
-  display: flex;
-  background: #fff;
-  width: 100%;
-}
-#dropdowns { display: flex; flex-direction: column; width: 40%; padding: 50px; }
+#collection-search-container { display: flex; background: #fff; width: 100%; }
+#collection-search-container :deep(.mwnf-search-form) { display: flex; flex-direction: column; width: 40%; padding: 50px; gap: 10px; }
 #dropdown-label { max-width: 300px; padding-bottom: 6px; font-size: 125%; font-weight: 700; }
-#select-container { width: 100%; max-width: 300px; display: flex; flex-direction: column; gap: 10px; }
-#dates-container { display: flex; gap: 10px; max-width: 300px; }
-#dates-container > * { flex: 1; min-width: 0; }
+#collection-search-container :deep(.mwnf-search-form__panel) { width: 100%; max-width: 300px; display: flex; flex-direction: column; gap: 10px; }
+#collection-search-container :deep(.mwnf-search-form__dates) { display: flex; gap: 10px; max-width: 300px; }
+#collection-search-container :deep(.mwnf-search-form__dates) > * { flex: 1; min-width: 0; }
 #description { width: 60%; padding: 50px 75px 50px 0; margin-top: 45px; }
 #description a { color: var(--link-blue); }
 
 @media only screen and (max-width: 849px) {
   #collection-search-container { flex-direction: column; }
-  #dropdowns, #description { width: 100%; padding: 30px; margin-top: 0; }
+  #collection-search-container :deep(.mwnf-search-form) { width: 100%; padding: 30px; }
+  #description { width: 100%; padding: 30px; margin-top: 0; }
 }
 </style>
