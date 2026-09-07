@@ -93,7 +93,7 @@ function showTimelineLink(filters) {
         <div class="options-label">{{ $t('catalogue.results.timelineForSearch') }}</div>
         <p>
           ➤
-          <RouterLink :to="{ name: 'timeline-results', query: { c: filters.country, start: filters.start, end: filters.end } }">
+          <RouterLink :to="{ name: 'timeline-results', query: { country: filters.country, begin: filters.start, end: filters.end } }">
             {{ $t('gallery.section.timeline') }} | {{ labelOf('countries', countryIdForCode(filters.country)) }}
           </RouterLink>
         </p>

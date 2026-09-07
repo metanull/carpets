@@ -1,53 +1,19 @@
 <script setup>
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { I18nText, useI18n } from '@metanull/viewer-core'
-import { timelineCountries, eventYearBuckets } from '../composables/useTimeline.js'
+import { I18nText } from '@metanull/viewer-core'
+import { TimelineResultsView } from '@metanull/viewer-layout/views'
+import { timelineResults } from '../composables/useTimeline.js'
 
-// Timeline entry form. The chronology is the global, project-independent
-// country timeline — `mwnf3.hcr` merged with Sharing History exhibition 2, the
-// way legacy's `/v2/events` serves it — which every gallery package ships in
-// full. That is why this page works even though the gallery's own
-// `has_country_timeline` flag is false, exactly as on the live site.
-const router = useRouter()
-const { t } = useI18n()
-const yearBuckets = computed(() => eventYearBuckets(t))
-
-const country = ref('')
-const start = ref('')
-const end = ref('')
-
-function goToResults() {
-  router.push({
-    name: 'timeline-results',
-    query: { c: country.value || 'all', start: start.value, end: end.value },
-  })
-}
+// The timeline entrance, on the platform's composed timeline view: the
+// country and period controls, the validation and the navigation to the
+// results page are the view's, over the spec in
+// composables/useTimeline.js — the same spec the results page renders,
+// `entrance: true` here.
+const spec = { ...timelineResults, entrance: true }
 </script>
 
 <template>
   <div id="timeline-page">
-    <div id="timeline-form">
-      <select class="legacy-select" v-model="country">
-        <option value="" disabled>{{ $t('timeline.form.selectCountry') }}</option>
-        <option v-for="c in timelineCountries" :key="c[0]" :value="c[0]">{{ c[1] ?? $t('timeline.form.allCountries') }}</option>
-      </select>
-
-      <div id="timeline-dates-container">
-        <select class="legacy-select" v-model="start">
-          <option value="" disabled>{{ $t('catalogue.facet.startDate') }}</option>
-          <option v-for="d in yearBuckets" :key="`s${d.value}`" :value="d.value">{{ d.label }}</option>
-        </select>
-        <select class="legacy-select" v-model="end">
-          <option value="" disabled>{{ $t('catalogue.facet.endDate') }}</option>
-          <option v-for="d in yearBuckets" :key="`e${d.value}`" :value="d.value">{{ d.label }}</option>
-        </select>
-      </div>
-
-      <div id="timeline-go">
-        <button class="legacy-button" @click="goToResults()">{{ $t('core.action.go') }}</button>
-      </div>
-    </div>
+    <TimelineResultsView :spec="spec" id="timeline-form" />
 
     <!-- Legacy hardcoded this copy in English; it is a shared entry now, with
          the three project links and the contact address written as Markdown
@@ -58,9 +24,7 @@ function goToResults() {
 
 <style scoped>
 #timeline-page { display: flex; background: #fff; width: 100%; min-height: 400px; }
-#timeline-form { display: flex; flex-direction: column; width: 40%; padding: 50px; max-width: 350px; }
-#timeline-dates-container { display: flex; gap: 10px; }
-#timeline-go { margin-top: 16px; }
+#timeline-form { width: 40%; padding: 50px; max-width: 350px; }
 #timeline-description { width: 60%; padding: 50px 75px 50px 0; line-height: 1.55; }
 #timeline-description a { color: var(--link-blue); }
 

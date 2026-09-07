@@ -7,7 +7,9 @@ import { RecordView } from '@metanull/viewer-layout/views'
 import {
   labelOf, partnerById, partnerRoute, dynastyById, translations, defaultLang, md, itemById,
 } from '../composables/useGalleryData.js'
-import { findEvents, eraLabel, roundOutward, timelineCountries, countryIdForCode } from '../composables/useTimeline.js'
+import { timelineEvents, eraLabel, roundOutward, countryIdForCode } from '../composables/useTimeline.js'
+
+const { countries: timelineCountries, findEvents } = timelineEvents
 import { itemSheet } from '../composables/sheet.js'
 import BackLink from '../components/BackLink.vue'
 
@@ -68,7 +70,7 @@ const dynastyEntries = (record, language) =>
 const timelineCountry = ref('')
 watch(item, (it) => { timelineCountry.value = it ? (countryCodeOf(it.country_id) ?? 'all') : 'all' }, { immediate: true })
 function countryCodeOf(countryId) {
-  for (const [code] of timelineCountries.value) {
+  for (const { value: code } of timelineCountries.value) {
     if (countryIdForCode(code) === countryId) return code
   }
   return null
@@ -77,7 +79,7 @@ const itemRange = computed(() => roundOutward(item.value?.start_date, item.value
 const itemEvents = computed(() => {
   const [from, to] = itemRange.value
   if (from == null) return []
-  return findEvents({ countryCode: timelineCountry.value, start: from, end: to })
+  return findEvents({ country: timelineCountry.value, begin: from, end: to })
 })
 
 const glossaryInput = ref('')
@@ -155,16 +157,16 @@ function printSheet() {
             <div class="popout-option">
               <label>{{ $t('timeline.form.searchIntro') }}</label>
               <select v-model="timelineCountry">
-                <option v-for="c in timelineCountries" :key="c[0]" :value="c[0]">{{ c[1] ?? $t('timeline.form.allCountries') }}</option>
+                <option v-for="c in timelineCountries" :key="c.value" :value="c.value">{{ c.label ?? $t('timeline.form.allCountries') }}</option>
               </select>
               <RouterLink
                 class="popout-full-link"
-                :to="{ name: 'timeline-results', query: { c: timelineCountry, start: itemRange[0], end: itemRange[1] } }"
+                :to="{ name: 'timeline-results', query: { country: timelineCountry, begin: itemRange[0], end: itemRange[1] } }"
               >➤ {{ $t('timeline.action.beginFullSearch') }}</RouterLink>
             </div>
             <div class="popout-scroll">
               <div class="popout-subheader">
-                {{ timelineCountries.find(c => c[0] === timelineCountry)?.[1] ?? $t('timeline.form.allCountries') }},
+                {{ timelineCountries.find(c => c.value === timelineCountry)?.label ?? $t('timeline.form.allCountries') }},
                 {{ era(itemRange[0]) }} – {{ era(itemRange[1]) }}
               </div>
               <div v-if="!itemEvents.length" class="popout-empty">{{ $t('timeline.results.noEvents') }}</div>

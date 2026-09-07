@@ -1,29 +1,25 @@
-import { computed } from 'vue'
-import { eraLabel, roundOutward, yearBucketsFromRange } from '@metanull/viewer-core'
+import { dateRange, eraLabel, roundOutward, useTimelineEvents, yearBucketsFromRange } from '@metanull/viewer-core'
 import {
-  timelines, timelineEvents, countries, countryById, labelOf, tr, defaultLang,
+  timelines, countries, countryById, labelOf, items, tr, loadTranslations, defaultLang,
 } from './useGalleryData.js'
+import { PAGE_SIZE, tile } from './useCollection.js'
 
 // The era suffix and the century window are viewer-core's: one rule for
 // every website, re-exported here for the views that read this module.
 export { eraLabel, roundOutward }
 
-// The global country timeline, served by legacy `/v2/events`. It is
-// country-scoped and project-independent — which is why the live carpets
-// instance answers `/events/countries` with the worldwide list even though its
-// own `hasCountryBasedTimeline` flag is false.
-//
-// It is also a MERGE of two chronologies rather than one table. Legacy's
-// `App\MWNF\DAO\v2\Events` unions `mwnf3.hcr` (the Discover Islamic Art country
-// chronologies) with `mwnf3_sharing_history.sh_hcr` restricted to exhibition 2,
-// "Political Context", and sorts the result by year. The package mirrors that:
-// each row of `timelines.json` is tagged `source: 'mwnf3' | 'sharing_history'`,
-// and `timeline_events.json` keys every event by `country_id`.
-//
-// A country can be served by BOTH sources, so anything user-facing must key on
-// the country and never on the timeline row: the picker below is built per
-// country, and `findEvents` filters on `country_id`, which is what merges the
-// two chronologies into one year-ordered list the way legacy did.
+// `TimelineResultsView` takes `tr` as a plain callback rather than an entity
+// name, unlike `CatalogueResultsView`/`RecordView`, which load their own
+// entity's English translations when they mount. Nothing does that for this
+// one, so it is done here, once, the moment this module is first read.
+loadTranslations('timeline_events', defaultLang)
+
+// The merge itself — the worldwide country chronology, `mwnf3.hcr` combined
+// with Sharing History's exhibition-2 rows the way legacy's `/v2/events`
+// served it — is now viewer-core's `useTimelineEvents`. What stays here is
+// what is genuinely this site's own: the DXA legacy 2-letter country code
+// (carpets' Timeline URLs are keyed on it, not on the inventory id) and the
+// two specs the composed views render from.
 //
 // Names and legacy codes both come from countries.json. The exporter scopes
 // that file to "member item countries ∪ their holders' countries ∪ the global
@@ -77,28 +73,8 @@ function nameFor(timeline) {
   }
 }
 
-/**
- * Countries that actually have a chronology, alphabetized, "All" first.
- *
- * One entry per COUNTRY, not per timeline row: a country served by BOTH
- * `mwnf3` and `sharing_history` has two rows, and would otherwise appear twice
- * in every country picker on the site.
- */
-export const timelineCountries = computed(() => {
-  const byCountry = new Map()
-  for (const timeline of timelines.value) {
-    if (!timeline.country_id || byCountry.has(timeline.country_id)) continue
-    byCountry.set(timeline.country_id, [legacyCodeOf(timeline), nameFor(timeline)])
-  }
-  const rows = [...byCountry.values()].sort((a, b) => a[1].localeCompare(b[1]))
-  // The "all" row carries no text of its own — it is a marker, and every
-  // picker that renders this list reads its label through the catalogue
-  // entry `timeline.form.allCountries` instead.
-  return [['all', null], ...rows]
-})
-
-/** Display name for an event's country. */
-export function timelineCountryName(countryId) {
+/** Display name for a country the chronology carries, keyed by inventory id. */
+export function countryLabel(countryId) {
   if (countries.value.some(c => c.id === countryId)) return labelOf('countries', countryId)
   const timeline = timelines.value.find(t => t.country_id === countryId)
   return timeline ? nameFor(timeline) : countryId
@@ -118,44 +94,104 @@ export function countryIdForCode(code) {
   return countries.value.find(c => c.code === code)?.id ?? null
 }
 
-/** Every event year present, as the year dropdown's source range. */
-export const eventYearRange = computed(() => {
-  const years = timelineEvents.value.map(e => e.year_from).filter(v => Number.isFinite(v) && v !== 0)
-  if (!years.length) return [null, null]
-  return [Math.min(...years), Math.max(...years)]
+/**
+ * The one merge engine every Timeline page on this site shares — worldwide,
+ * project-independent, which is why it works even though this gallery's own
+ * `has_country_timeline` flag is false, exactly as on the live site.
+ * `TimelineResultsView`'s two instances (entrance, results) each read the
+ * spec below and build their own; the item sheet's "Timeline for this item"
+ * widget is the one place that reads it directly, for a per-item country and
+ * range the composed view has no shape for.
+ */
+export const timelineEvents = useTimelineEvents({
+  scope: 'country',
+  countryLabel,
+  countryIdForCode,
+  tr: (id) => tr('timeline_events', id, defaultLang),
 })
 
-export function eventYearBuckets(t) {
-  const [min, max] = eventYearRange.value
-  return yearBucketsFromRange(min, max, t)
+// ── The gallery join ────────────────────────────────────────────────────────
+//
+// Legacy's timeline-gallery page joined events to member items by country and
+// year range client-side; the package spec anticipated exactly this. Overlap,
+// not containment: a period is a window on the chronology, and an object made
+// across its edge belongs in it.
+
+function inTimelineScope(item, countryCode) {
+  const countryId = countryIdForCode(countryCode)
+  return Number.isFinite(item.start_date) && (!countryId || item.country_id === countryId)
 }
 
-/**
- * Legacy's `/events?ic[]=&ya=&yo=` — events for a country within a year range,
- * ordered chronologically.
- *
- * Filtering on `country_id` rather than `timeline_id` is what reproduces the
- * legacy merge: a country served by both chronologies yields both sets of
- * events here, and the year sort below interleaves them into one list.
- */
-export function findEvents({ countryCode, start, end }) {
-  const countryId = countryIdForCode(countryCode)
-  const from = start === '' || start == null ? null : Number(start)
-  const to = end === '' || end == null ? null : Number(end)
+/** The member items in `filters.country`'s period — the "See gallery" count. */
+export function timelineGalleryItems({ country, begin, end } = {}) {
+  const list = (items.value ?? []).filter((i) => inTimelineScope(i, country))
+  return dateRange(list, { begin, end, mode: 'overlap' })
+}
 
-  return timelineEvents.value
-    .filter(e => {
-      if (countryId && e.country_id !== countryId) return false
-      const year = e.year_from
-      if (!Number.isFinite(year)) return false
-      if (from != null && year < from) return false
-      if (to != null && year > to) return false
-      return true
-    })
-    .map(e => ({
-      ...e,
-      countryName: timelineCountryName(e.country_id),
-      text: tr('timeline_events', e.id, defaultLang),
-    }))
-    .sort((a, b) => (a.year_from - b.year_from) || (a.display_order ?? 0) - (b.display_order ?? 0))
+// ── The entrance and results page, as one spec ──────────────────────────────
+//
+// What viewer-layout's `TimelineResultsView` renders on `/timeline` (entrance:
+// true) and `/timeline-results` (entrance: false): the country and period
+// controls, the events list, and the "See gallery" cross-link — shown
+// whenever the chosen country and period actually contain member items, for
+// every country including "all", which is wave 0's behaviour and is kept.
+
+export const timelineResults = {
+  scope: 'country',
+  countryLabel,
+  countryIdForCode,
+  tr: (id) => tr('timeline_events', id, defaultLang),
+  route: 'timeline-results',
+  controls: [
+    { key: 'country' },
+    { key: 'begin', options: (ctx) => yearBucketsFromRange(ctx.years.min, ctx.years.max, ctx.t) },
+    { key: 'end', options: (ctx) => yearBucketsFromRange(ctx.years.min, ctx.years.max, ctx.t) },
+  ],
+  gallery: {
+    route: 'timeline-gallery',
+    items: (ctx) => timelineGalleryItems(ctx.filters),
+  },
+}
+
+// ── The gallery page, as a spec ──────────────────────────────────────────────
+//
+// What viewer-layout's `CatalogueResultsView` renders on `/timeline/gallery`:
+// the same country-and-period join as the cross-link above, over the member
+// items, undated last, nine tiles a page. No facets or controls: the country
+// and period travel from the timeline results page, not from this page's own
+// form.
+
+export const timelineGallery = {
+  entity: 'items',
+  // Named explicitly: there are no facets here for the default key list to
+  // infer 'country' from, only the join's own scope function.
+  keys: ['country', 'begin', 'end'],
+  scope: (item, filters) => inTimelineScope(item, filters.country),
+  dates: { mode: 'overlap' },
+  sort: { undated: 'first' },
+  pageSize: PAGE_SIZE,
+  variant: 'grid',
+  recordRoute: 'item',
+  actionLabel: 'gallery.action.seeDatabaseEntry',
+  empty: 'gallery.results.noObjectsInPeriod',
+  pagination: { jump: true },
+
+  record: (item, { t }) => tile(item, t),
+
+  summary: ({ filters, pageInfo, t }) => {
+    const countryId = countryIdForCode(filters.country)
+    const begin = filters.begin ? Number(filters.begin) : null
+    const end = filters.end ? Number(filters.end) : null
+    const parts = [{
+      label: t('timeline.results.galleryHeading'),
+      value: countryId ? labelOf('countries', countryId) : t('timeline.form.allCountries'),
+    }]
+    if (begin != null || end != null) {
+      const from = begin != null ? eraLabel(begin, t) : t('timeline.form.earliest')
+      const to = end != null ? eraLabel(end, t) : t('timeline.form.latest')
+      parts.push({ value: `${from} ${t('timeline.form.to')} ${to}` })
+    }
+    parts.push({ count: pageInfo.total, value: t('catalogue.results.objects') })
+    return parts
+  },
 }
