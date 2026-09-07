@@ -49,10 +49,10 @@ const fullMap = computed(() =>
 
 <template>
   <div class="partner-map" v-if="hasLocation">
-    <p class="map-label">{{ $t('gallery.partner.onTheMap') }}</p>
+    <p class="map-label">{{ $t('partner.map.onTheMap') }}</p>
     <iframe
       :src="src"
-      :title="label ? `${$t('gallery.partner.mapOf')} ${label}` : $t('gallery.partner.map')"
+      :title="label ? `${$t('partner.map.mapOf')} ${label}` : $t('partner.map.map')"
       loading="lazy"
       referrerpolicy="no-referrer"
     ></iframe>

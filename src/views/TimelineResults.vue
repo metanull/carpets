@@ -42,7 +42,7 @@ const page = usePagination(events, { page: currentPage, size: EVENTS_PER_PAGE })
 
 const countryName = computed(() =>
   timelineCountries.value.find(c => c[0] === String(route.query.c ?? 'all'))?.[1]
-    ?? t('gallery.timeline.allCountries')
+    ?? t('timeline.form.allCountries')
 )
 
 function goToResults() {
@@ -69,9 +69,9 @@ const galleryItems = computed(() => {
     <div id="timeline-results-search-container">
       <p id="current-search">
         {{ $t('gallery.section.timeline') }} |
-        {{ route.query.start ? era(Number(route.query.start)) : $t('gallery.timeline.earliest') }}
-        {{ $t('gallery.timeline.to') }}
-        {{ route.query.end ? era(Number(route.query.end)) : $t('gallery.timeline.latest') }} |
+        {{ route.query.start ? era(Number(route.query.start)) : $t('timeline.form.earliest') }}
+        {{ $t('timeline.form.to') }}
+        {{ route.query.end ? era(Number(route.query.end)) : $t('timeline.form.latest') }} |
         <span>{{ countryName }} | {{ page.total }} {{ $t('catalogue.results.heading') }}</span>
       </p>
 
@@ -90,7 +90,7 @@ const galleryItems = computed(() => {
         </label>
         <label>{{ $t('catalogue.facet.country') }}
           <select class="legacy-select" v-model="country">
-            <option v-for="c in timelineCountries" :key="c[0]" :value="c[0]">{{ c[1] ?? $t('gallery.timeline.allCountries') }}</option>
+            <option v-for="c in timelineCountries" :key="c[0]" :value="c[0]">{{ c[1] ?? $t('timeline.form.allCountries') }}</option>
           </select>
         </label>
         <button class="legacy-button" @click="goToResults()">{{ $t('core.action.go') }}</button>
@@ -118,7 +118,7 @@ const galleryItems = computed(() => {
     <div id="timeline-results-container">
       <div id="labels-container" v-if="page.rows.length">
         <div id="date-label">{{ $t('gallery.results.date') }}</div>
-        <div id="country-label">{{ $t('gallery.results.countryDescription') }}</div>
+        <div id="country-label">{{ $t('timeline.results.countryDescription') }}</div>
       </div>
       <div v-if="page.rows.length">
         <div class="event-container" v-for="event in page.rows" :key="event.id">
@@ -130,7 +130,7 @@ const galleryItems = computed(() => {
         </div>
       </div>
       <div id="timeline-no-results" v-else>
-        {{ $t('gallery.timeline.noResults') }}
+        {{ $t('timeline.results.noResults') }}
       </div>
     </div>
 

@@ -1,5 +1,5 @@
 import {
-  countryLabel, defaultLang, itemLabel, itemRoute, mdInline, mdStrip, partnerById, tr, translations,
+  defaultLang, itemRoute, labelOf, mdInline, mdStrip, partnerById, tr, translations,
 } from './useGalleryData.js'
 
 // The item sheet, as a spec: what viewer-layout's `RecordView` renders on
@@ -37,7 +37,7 @@ const dynastyNames = (c) =>
 const fields = [
   { key: 'name', label: 'sheet.field.name', value: 'name' },
   { key: 'aka', label: 'sheet.field.alsoKnownAs', value: 'alternate_name' },
-  { key: 'location', label: 'sheet.field.location', value: (c) => [c.text.location, countryLabel(c.record.country_id)].filter(Boolean).join(', ') },
+  { key: 'location', label: 'sheet.field.location', value: (c) => [c.text.location, labelOf('countries', c.record.country_id)].filter(Boolean).join(', ') },
   // A link to the partner's page, rendered by the wrapper's `museum` slot.
   { key: 'museum', label: 'sheet.field.holdingMuseum', value: (c) => (partnerById.value.get(c.record.partner_id) ? c.record.partner_id : ''), render: 'custom' },
   { key: 'originalOwner', label: 'sheet.field.originalOwner', value: 'initial_owner' },
@@ -85,7 +85,7 @@ export const itemSheet = {
       .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
       .map((p) => ({
         url: p.url,
-        alt: itemLabel(record),
+        alt: labelOf('items', record.id),
         caption: p.captions?.[language] ?? p.captions?.[defaultLang] ?? '',
         photographer: p.photographer ?? '',
         copyright: p.copyright ?? '',
@@ -98,9 +98,9 @@ export const itemSheet = {
     record: ({ record: other, justification }) => ({
       id: other.id,
       image: other.images?.[0]?.url ?? '',
-      imageAlt: itemLabel(other),
+      imageAlt: labelOf('items', other.id),
       name: mdInline(tr('items', other.id, defaultLang).name ?? other.internal_name ?? ''),
-      meta: [countryLabel(other.country_id), justification ? mdStrip(justification) : ''].filter(Boolean),
+      meta: [labelOf('countries', other.country_id), justification ? mdStrip(justification) : ''].filter(Boolean),
       to: itemRoute(other),
     }),
   },

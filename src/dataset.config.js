@@ -1,4 +1,4 @@
-import { languageLabels, loadEntities, offeredLanguages, useDataPackage } from '@metanull/viewer-core'
+import { languageLabels, loadEntities, mwnfLinks, offeredLanguages, sectionMeta, useDataPackage } from '@metanull/viewer-core'
 import SiteShell from './SiteShell.vue'
 import { itemFromUidPath, partnerFromKey } from './composables/useGalleryData.js'
 
@@ -20,7 +20,7 @@ const languages = offeredLanguages()
 // says which section it belongs to, and the shell reads that for the banner
 // title and the active menu entry (viewer-core's `useSection`).
 const CHROME = ['gallery', 'items', 'partners', 'countries']
-const meta = (section, ...names) => ({ section, entities: [...CHROME, ...names] })
+const meta = sectionMeta(CHROME)
 
 export default {
   // The dataset package this website renders. Must match the alias in
@@ -52,21 +52,9 @@ export default {
     legacyHost: 'https://images.museumwnf.org',
   },
 
-  // Every address this website links out to.
-  links: {
-    portal: 'https://www.museumwnf.org',
-    galleries: 'https://galleries.museumwnf.org',
-    myCollection: 'https://www.museumwnf.org/mycollection/index.php',
-    about: 'https://www.museumwnf.org/about',
-    contact: 'https://www.museumwnf.org/about/contact',
-    legalNotice: 'https://www.museumwnf.org/about/legal-notice',
-    credits: 'https://www.museumwnf.org/about/credits',
-    cookies: 'https://www.museumwnf.org/about/cookies',
-    overallDatabase: 'https://www.museumwnf.org/database_searchform.php',
-    islamicArt: 'https://islamicart.museumwnf.org',
-    baroqueArt: 'https://baroqueart.museumwnf.org',
-    sharingHistory: 'https://sharinghistory.museumwnf.org',
-  },
+  // Every address this website links out to — the twelve portal and sibling
+  // addresses every DXA config repeats, carpets adding none of its own.
+  links: { ...mwnfLinks },
 
   // The canonical routes, one view per page: a section is `/<section>`, a
   // record `/<section>/:id` with the package id, and the language, the page

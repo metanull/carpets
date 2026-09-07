@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import {
-  partners, partnerRoute, partnerObjectsRoute, partnerLabel, countryLabel,
+  partners, partnerRoute, partnerObjectsRoute, labelOf,
   tr, defaultLang,
 } from '../composables/useGalleryData.js'
 import { I18nText } from '@metanull/viewer-core'
@@ -37,14 +37,14 @@ const order = ref('a-z')
 const grouped = computed(() => {
   const byCountry = new Map()
   for (const partner of partners.value) {
-    const country = countryLabel(partner.country_id)
+    const country = labelOf('countries', partner.country_id)
     if (!byCountry.has(country)) byCountry.set(country, [])
     byCountry.get(country).push(partner)
   }
   const rows = [...byCountry.entries()]
     .map(([country, list]) => [
       country,
-      list.sort((a, b) => partnerLabel(a.id).localeCompare(partnerLabel(b.id))),
+      list.sort((a, b) => labelOf('partners', a.id).localeCompare(labelOf('partners', b.id))),
     ])
     .sort((a, b) => a[0].localeCompare(b[0]))
   return order.value === 'a-z' ? rows : rows.reverse()
@@ -64,7 +64,7 @@ function city(partner) {
              translator has to be able to move every word of a text, including
              the part that used to be a value. -->
         <button class="legacy-button" @click="order = order === 'a-z' ? 'z-a' : 'a-z'">
-          {{ order === 'a-z' ? $t('gallery.partner.sortDescending') : $t('gallery.partner.sortAscending') }}
+          {{ order === 'a-z' ? $t('partner.list.sortDescending') : $t('partner.list.sortAscending') }}
         </button>
       </div>
     </div>
@@ -78,11 +78,11 @@ function city(partner) {
           <div class="partner-text-links-container">
             <div class="partner-name">
               <RouterLink :to="partnerRoute(partner)">
-                {{ partnerLabel(partner.id) }}<span v-if="city(partner)">, {{ city(partner) }}</span>
+                {{ labelOf('partners', partner.id) }}<span v-if="city(partner)">, {{ city(partner) }}</span>
               </RouterLink>
             </div>
             <div class="partner-meta" v-if="partner.item_count">
-              {{ partner.item_count }} {{ $t('gallery.partner.objectsInGallery') }}
+              {{ partner.item_count }} {{ $t('partner.item.objectsInSite') }}
             </div>
             <div class="partner-meta partner-meta-empty" v-else>
               {{ $t('gallery.partner.noObjectsInGallery') }}
@@ -96,7 +96,7 @@ function city(partner) {
             </div>
           </div>
           <div class="partner-logo" v-if="partner.logos?.length">
-            <img :src="partner.logos[0].url" :alt="partnerLabel(partner.id)" loading="lazy" />
+            <img :src="partner.logos[0].url" :alt="labelOf('partners', partner.id)" loading="lazy" />
           </div>
         </div>
       </section>
