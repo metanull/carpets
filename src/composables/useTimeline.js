@@ -1,3 +1,4 @@
+import { computed } from 'vue'
 import { dateRange, eraLabel, roundOutward, useTimelineEvents, yearBucketsFromRange } from '@metanull/viewer-core'
 import {
   timelines, countries, countryById, labelOf, items, tr, loadTranslations, defaultLang,
@@ -44,6 +45,13 @@ const regionNames = (() => {
 // Two legacy codes are not ISO 3166-1 alpha-2.
 const LEGACY_TO_ISO = { uk: 'GB', pa: 'PS' }
 
+// `TimelineResultsView`'s own country control (`countries` from viewer-core)
+// writes the inventory id, not the legacy code (`?country=dza`, not
+// `?country=dz`); `countryIdForCode` used to answer nothing for one, silently
+// matching every event. Built once, next to `LEGACY_TO_ISO`, rather than
+// inside the function it is read from.
+const countryIdSet = computed(() => new Set(countries.value.map((c) => c.id)))
+
 // A lookup, not a parse. The fallback exists only for the regressed-package
 // case described above, and it must agree with GLOBAL_TIMELINE_LIKE_PATTERNS in
 // `scripts/exporters/carpets/src/exporters/timeline-exporter.ts`: the country
@@ -87,6 +95,10 @@ export function countryLabel(countryId) {
  */
 export function countryIdForCode(code) {
   if (!code || code === 'all') return null
+  // Already an id (the composed view's own control writes one): pass it
+  // through unchanged, before the legacy-code lookups below get a chance to
+  // find nothing and silently match every event.
+  if (countryIdSet.value.has(code)) return code
   const timeline = timelines.value.find(t => legacyCodeOf(t) === code)
   if (timeline) return timeline.country_id
   // Countries with no chronology still reach here from the collection page's
