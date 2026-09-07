@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { projectName, searchGlossary, useI18n, useSiteConfig } from '@metanull/viewer-core'
-import { RecordLanguages, RelatedRecords, SheetSection } from '@metanull/viewer-layout/content'
+import { BackLink, RecordLanguages, RelatedRecords, SheetSection } from '@metanull/viewer-layout/content'
 import { RecordView } from '@metanull/viewer-layout/views'
 import {
   labelOf, partnerById, partnerRoute, dynastyById, translations, defaultLang, md, itemById,
@@ -11,7 +11,6 @@ import { timelineEvents, eraLabel, roundOutward, countryIdForCode } from '../com
 
 const { countries: timelineCountries, findEvents } = timelineEvents
 import { itemSheet } from '../composables/sheet.js'
-import BackLink from '../components/BackLink.vue'
 
 // The item sheet is the platform's composed record page, rendering the spec
 // in composables/sheet.js: the record's language and loads, the glossary

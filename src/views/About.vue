@@ -1,6 +1,6 @@
 <script setup>
 import { I18nText } from '@metanull/viewer-core'
-import BackLink from '../components/BackLink.vue'
+import { BackLink } from '@metanull/viewer-layout/content'
 
 // `gallery.about.body` is a shared entry every gallery receives, holding the
 // generic *MWNF Galleries* text; this gallery overloads it in its own

@@ -89,6 +89,41 @@ describe('website smoke test', () => {
     app.unmount()
   }, 60000)
 
+  // The partner pages run on the platform's composed views
+  // (metanull/viewer-layout#38, #41): the grouping, the A-Z toggle, the
+  // record's language, the map and the member-items grid come from the specs
+  // in composables/partner.js. What only this gallery has — the "no objects"
+  // line for a partner listed under decision MWNF-384 — fills the list's
+  // `#row` slot.
+  it('renders the partners list on the composed partner-list view', async () => {
+    const { app, host } = await mountSite('#/partners')
+    await vi.waitFor(() => expect(host.querySelector('.mwnf-partner-list__row')).not.toBeNull(), { timeout: 20000 })
+    expect(host.textContent).toContain('Austria')
+    expect(host.textContent).toContain('Weltmuseum Wien')
+    // The object count is this website's own copy over the shared entry, not
+    // a generic count.
+    expect(host.textContent).toContain('7 object(s) in this site')
+    app.unmount()
+  }, 60000)
+
+  it('renders a partner profile on the composed record view', async () => {
+    const { app, host } = await mountSite('#/partner/2300bb0e-fc9f-55c5-ae2e-20f619a46cce')
+    // `.mwnf-record` renders as soon as the id resolves; the name and city
+    // only once the translation load the view kicks off settles.
+    await vi.waitFor(() => expect(host.textContent).toContain('Weltmuseum Wien'), { timeout: 20000 })
+    expect(host.textContent).toContain('Vienna')
+    // The map is the layout's `PartnerMap`, not the deleted local component.
+    expect(host.querySelector('.mwnf-partner-map')).not.toBeNull()
+    app.unmount()
+  }, 60000)
+
+  it("renders a partner's objects on the composed grid results view", async () => {
+    const { app, host } = await mountSite('#/partner/2300bb0e-fc9f-55c5-ae2e-20f619a46cce/objects')
+    await vi.waitFor(() => expect(host.querySelectorAll('.mwnf-grid__tile').length).toBe(7), { timeout: 20000 })
+    expect(host.textContent).toContain('Weltmuseum Wien')
+    app.unmount()
+  }, 60000)
+
   it('declares every canonical route by name, and every legacy shape as a redirect', () => {
     const names = config.extraViews.map((r) => r.name)
     for (const name of [
