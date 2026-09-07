@@ -64,6 +64,31 @@ describe('website smoke test', () => {
     app.unmount()
   }, 60000)
 
+  // The timeline entrance/results and the gallery run on the platform's
+  // composed views (metanull/viewer-layout#37): the country and period
+  // controls, the events list and the "See gallery" cross-link come from the
+  // spec in composables/useTimeline.js.
+  it('renders the timeline results on the composed timeline view', async () => {
+    const { app, host } = await mountSite('#/timeline-results?country=gr')
+    await vi.waitFor(() => expect(host.querySelectorAll('.mwnf-timeline__row').length).toBe(11), { timeout: 20000 })
+    expect(host.querySelector('.mwnf-summary').textContent).toContain('11')
+    // A Greece event's own description, not just a row count — its
+    // translation loads asynchronously, behind the spec's own `tr`.
+    await vi.waitFor(() => expect(host.textContent).toContain('Filiki Etaireia'), { timeout: 20000 })
+    // The join to member items finds Greece's nine dated objects even with
+    // no period chosen — wave 0's "all countries too" behaviour, kept.
+    expect(host.querySelector('.mwnf-timeline__gallery').textContent).toContain('9')
+    app.unmount()
+  }, 60000)
+
+  it('renders the timeline gallery on the composed results view', async () => {
+    const { app, host } = await mountSite('#/timeline/gallery?country=gr')
+    await vi.waitFor(() => expect(host.querySelectorAll('.mwnf-grid__tile').length).toBe(9), { timeout: 20000 })
+    expect(host.querySelector('.mwnf-summary').textContent).toContain('Greece')
+    expect(host.textContent).toContain('Floor mat')
+    app.unmount()
+  }, 60000)
+
   it('declares every canonical route by name, and every legacy shape as a redirect', () => {
     const names = config.extraViews.map((r) => r.name)
     for (const name of [

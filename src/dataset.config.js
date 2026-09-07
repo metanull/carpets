@@ -134,7 +134,9 @@ export default {
       path: '/timeline-gallery/:country/:start/:end/:page',
       resolve({ country, start, end, page }) {
         const query = { country }
-        if (start !== 'any') query.start = start
+        // The path segments keep their legacy names; the query they resolve
+        // to carries the platform's own key for a period bound, 'begin'.
+        if (start !== 'any') query.begin = start
         if (end !== 'any') query.end = end
         if (Number(page) > 1) query.page = page
         return { name: 'timeline-gallery', query }
