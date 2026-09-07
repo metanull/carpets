@@ -1,4 +1,4 @@
-import { useI18n, useProjectName } from '@metanull/viewer-core'
+import { projectName, useI18n } from '@metanull/viewer-core'
 import {
   countries, countryById, tagById, tags,
   countryLabel, itemLabel, itemRoute, partnerLabel, tr, defaultLang, mdInline,
@@ -115,27 +115,72 @@ export function haystack(item, text) {
 // ── The tile ───────────────────────────────────────────────────────────────
 
 /**
- * Records as viewer-layout's grid contract: the thumbnail, the name, the
+ * A record as viewer-layout's grid contract: the thumbnail, the name, the
  * lines legacy's hover card carried (date, holder, place, source project).
  */
+export function tile(item, t) {
+  const text = tr('items', item.id, defaultLang)
+  return {
+    id: item.id,
+    image: item.images?.[0]?.url ?? '',
+    imageAlt: itemLabel(item),
+    name: mdInline(text.name ?? item.internal_name ?? ''),
+    meta: [
+      text.dates ?? '',
+      partnerLabel(item.partner_id),
+      [text.location, countryLabel(item.country_id)].filter(Boolean).join(', '),
+      `${t('catalogue.results.forProject')} ${projectName(item.project_key, t)}`,
+    ].filter(Boolean),
+    to: itemRoute(item),
+  }
+}
+
+/** `tile` bound to the installed texts, for a page that lists records itself. */
 export function useGridRecords() {
   const { t } = useI18n()
-  const projectName = useProjectName()
-  return (list) =>
-    list.map((item) => {
-      const text = tr('items', item.id, defaultLang)
-      return {
-        id: item.id,
-        image: item.images?.[0]?.url ?? '',
-        imageAlt: itemLabel(item),
-        name: mdInline(text.name ?? item.internal_name ?? ''),
-        meta: [
-          text.dates ?? '',
-          partnerLabel(item.partner_id),
-          [text.location, countryLabel(item.country_id)].filter(Boolean).join(', '),
-          `${t('catalogue.results.forProject')} ${projectName(item.project_key)}`,
-        ].filter(Boolean),
-        to: itemRoute(item),
-      }
-    })
+  return (list) => list.map((item) => tile(item, t))
+}
+
+// ── The results page, as a spec ────────────────────────────────────────────
+//
+// What viewer-layout's `CatalogueResultsView` renders on
+// `/collection-results`: the facets over the *matching* records (the
+// dependent dropdowns above), the containment date rule, undated first, nine
+// tiles a page, legacy's "Collection | <selections>" summary line. The panel
+// itself is composed by the view's wrapper, in the aside where legacy put it,
+// so no controls are declared here. Every text is an entry name.
+
+const KEYS = ['country', ...FACET_CATEGORIES, 'start', 'end']
+
+/** The filter summary line legacy printed as "Collection | <selections>". */
+function filterSummary(filters, t) {
+  const parts = []
+  if (filters.country) parts.push(countryLabel(countryIdForCode(filters.country)))
+  for (const key of FACET_CATEGORIES) if (filters[key]) parts.push(tagLabelForLegacy(filters[key]))
+  if (filters.start) parts.push(`${t('catalogue.filter.from')} ${filters.start}`)
+  if (filters.end) parts.push(`${t('catalogue.filter.to')} ${filters.end}`)
+  return parts.filter(Boolean).join(' | ')
+}
+
+export const collectionResults = {
+  entity: 'items',
+  keys: KEYS,
+  facets: FACETS,
+  facetScope: 'matching',
+  filterMode: 'immediate',
+  dates: { mode: DATE_MODE, begin: 'start', end: 'end' },
+  sort: { undated: 'first' },
+  pageSize: PAGE_SIZE,
+  variant: 'grid',
+  recordRoute: 'item',
+  actionLabel: 'gallery.action.seeDatabaseEntry',
+  empty: 'catalogue.results.noResults',
+  pagination: { jump: true },
+
+  record: (item, { t }) => tile(item, t),
+
+  summary: ({ filters, pageInfo, t, total }) => [
+    { label: t('gallery.section.collection'), value: filterSummary(filters, t) },
+    { count: pageInfo.total, value: `${t('catalogue.results.outOf')} ${total} ${t('catalogue.results.objects')}` },
+  ],
 }

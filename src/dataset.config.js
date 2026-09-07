@@ -85,6 +85,7 @@ export default {
       path: '/item/:id',
       name: 'item',
       component: () => import('./views/ItemSheet.vue'),
+      props: (route) => ({ id: route.params.id }),
       meta: meta('database', 'languages', 'dynasties', 'glossary', 'timelines', 'timeline_events'),
     },
     { path: '/search', name: 'search-results', component: () => import('./views/SearchResults.vue'), meta: meta('database') },
