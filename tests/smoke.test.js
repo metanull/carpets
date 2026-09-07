@@ -115,6 +115,23 @@ describe('website smoke test', () => {
     app.unmount()
   }, 60000)
 
+  // The glossary tool and the dynasty popouts in the item sheet's `related`
+  // slot are the layout's own (metanull/carpets#35), not the local markup
+  // and state this gallery used to carry: `GlossaryTool` and `DynastyList`
+  // from `@metanull/viewer-layout/content`, each a native `<details>` toggle
+  // with its own heading text.
+  it('renders the layout glossary tool and dynasty popouts on the item sheet', async () => {
+    // A 'Lotto' Carpet with the Ottoman dynasty attached — a record whose
+    // dynasty translation actually carries a history, so it survives
+    // ItemSheet.vue's own "has something to show" filter.
+    const { app, host } = await mountSite('#/item/bef82deb-d132-5484-9771-21ba888224d0')
+    await vi.waitFor(() => expect(host.querySelector('.mwnf-dynasty-list')).not.toBeNull(), { timeout: 20000 })
+    expect(host.querySelector('.mwnf-glossary-tool')).not.toBeNull()
+    expect(host.querySelector('.mwnf-dynasty-list__heading').textContent).toContain('Dynasties')
+    expect(host.textContent).toContain('Ottomans')
+    app.unmount()
+  }, 60000)
+
   // The timeline entrance/results and the gallery run on the platform's
   // composed views (metanull/viewer-layout#37): the country and period
   // controls, the events list and the "See gallery" cross-link come from the
