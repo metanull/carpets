@@ -1,9 +1,8 @@
 <script setup>
 import { RouterLink } from 'vue-router'
-import { Pagination } from '@metanull/viewer-layout/content'
+import { BackLink, Pagination } from '@metanull/viewer-layout/content'
 import { CatalogueResultsView } from '@metanull/viewer-layout/views'
 import { timelineGallery } from '../composables/useTimeline.js'
-import BackLink from '../components/BackLink.vue'
 
 // The member items whose dates overlap the timeline search's country and
 // period, on the platform's composed results view: the join, the date rule,

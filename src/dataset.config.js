@@ -79,7 +79,13 @@ export default {
     { path: '/search', name: 'search-results', component: () => import('./views/SearchResults.vue'), meta: meta('database') },
     { path: '/how-to-search', name: 'search-how-to', component: () => import('./views/SearchHowTo.vue'), meta: meta('database') },
     { path: '/partners', name: 'partners', component: () => import('./views/Partners.vue'), meta: meta('partners') },
-    { path: '/partner/:id', name: 'partner', component: () => import('./views/PartnerProfile.vue'), meta: meta('partners', 'languages') },
+    {
+      path: '/partner/:id',
+      name: 'partner',
+      component: () => import('./views/PartnerProfile.vue'),
+      props: (route) => ({ id: route.params.id }),
+      meta: meta('partners', 'languages'),
+    },
     { path: '/partner/:id/objects', name: 'partner-objects', component: () => import('./views/PartnerObjects.vue'), meta: meta('partners') },
     { path: '/timeline', name: 'timeline', component: () => import('./views/Timeline.vue'), meta: meta('timeline', 'timelines', 'timeline_events') },
     {

@@ -1,207 +1,149 @@
 <script setup>
-import { computed, ref, watch, onMounted } from 'vue'
-import { useRoute, RouterLink } from 'vue-router'
-import {
-  partnerById, partnerObjectsRoute, labelOf,
-  tr, loadTranslations, availableLanguages, defaultLang, languageByCode, md,
-} from '../composables/useGalleryData.js'
-import { NotFoundView, useI18n, useRecordLanguage } from '@metanull/viewer-core'
-import BackLink from '../components/BackLink.vue'
-import PartnerMap from '../components/PartnerMap.vue'
+import { ref } from 'vue'
+import { RouterLink } from 'vue-router'
+import { useI18n } from '@metanull/viewer-core'
+import { RecordLanguages, MediaGallery, PartnerMap, BackLink } from '@metanull/viewer-layout/content'
+import { RecordView } from '@metanull/viewer-layout/views'
+import { partnerObjectsRoute, labelOf, md } from '../composables/useGalleryData.js'
+import { partnerSheet } from '../composables/partner.js'
 
-const route = useRoute()
+// The partner profile, on the platform's composed record view: the
+// language, the loads, the glossary and the "not found" fallback are the
+// view's, from the spec in composables/partner.js. Legacy's own tab strip
+// (About/Contact/Logo/homepage) is not a sheet of labelled fields, so it
+// fills the `header` slot in place of the default title, and its panels
+// fill `before-sheet`; the photo carousel and its lightbox are the layout's
+// `MediaGallery`, the map its `PartnerMap`.
+//
+// The language buttons now list every language the partners.json package
+// carries a translation for at all (`RecordView`'s own default, since a
+// partner record carries no per-record `languages` array the way an item
+// does) rather than only the ones this specific partner has content in; a
+// language this partner lacks falls back to English, exactly as every other
+// text on this page already does.
+const props = defineProps({ id: { type: String, required: true } })
+
+// Also handed down through the `header` slot, on every composed record view
+// — bound here too so `npx viewer-i18n-check` can tell a bare `t(...)` in the
+// template is the text lookup and not some other function of the same name,
+// exactly as composables/sheet.js's own RecordView page already does.
 const { t } = useI18n()
 
-const partner = computed(() => partnerById.value.get(route.params.id) ?? null)
-const ready = ref(false)
-
-// Which languages this partner record actually has. Legacy read `i18nLinks`;
-// here it is which translation files carry a row for this partner — the
-// package omits a file entirely when nothing in it has a translation.
-const partnerLanguages = computed(() => {
-  const p = partner.value
-  if (!p) return [defaultLang]
-  return availableLanguages('partners').filter(code => {
-    const rows = tr('partners', p.id, code)
-    return code === defaultLang || Boolean(rows?.name)
-  })
-})
-
-// The record's language: the site language where the partner has it,
-// English otherwise, and the visitor's toggle on this profile alone.
-const { language: lang, dir, select } = useRecordLanguage(partner, { languages: () => partnerLanguages.value })
-
-async function load() {
-  ready.value = false
-  if (!partner.value) { ready.value = true; return }
-  await Promise.all(availableLanguages('partners').map(code => loadTranslations('partners', code)))
-  await loadTranslations('partners', lang.value)
-  ready.value = true
-}
-onMounted(load)
-watch(() => [route.params.id, lang.value].join('|'), load)
-
-const info = computed(() => (partner.value ? tr('partners', partner.value.id, lang.value) : {}))
-
 const tab = ref('description')
-const photos = computed(() =>
-  [...(partner.value?.images ?? [])].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
-)
-const currentPhoto = ref(0)
-const lightbox = ref(false)
 
-function slide(direction) {
-  const n = photos.value.length
-  if (!n) return
-  currentPhoto.value = (currentPhoto.value + (direction === 'right' ? 1 : -1) + n) % n
-}
+const contacts = (record) => [record?.contact_person_1, record?.contact_person_2].filter(Boolean)
+const hasContact = (record, text) =>
+  Boolean(text.address || text.phone || text.email || text.website || contacts(record).length)
 
-const contacts = computed(() =>
-  [partner.value?.contact_person_1, partner.value?.contact_person_2].filter(Boolean)
-)
-const hasContact = computed(() =>
-  Boolean(info.value.address || info.value.phone || info.value.email || info.value.website || contacts.value.length)
-)
-
-function languageName(code) {
-  return languageByCode.value.get(code)?.names?.[code] ?? code.toUpperCase()
-}
-
-const website = computed(() => {
-  const url = info.value.website
+function website(text) {
+  const url = text.website
   if (!url) return null
   return /^https?:\/\//i.test(url) ? url : `https://${url}`
-})
+}
 </script>
 
 <template>
-  <div id="partner-profile-wrapper" v-if="partner">
-    <div id="profile-languages">
-      <button
-        v-for="code in partnerLanguages"
-        :key="code"
-        class="languages-button"
-        :class="{ 'language-selected': code === lang }"
-        @click="select(code)"
-      >{{ languageName(code) }}</button>
-    </div>
-
-    <BackLink />
-
-    <div v-if="!ready" class="loader">{{ $t('core.status.loading') }}</div>
-
-    <div v-else id="partner-profile" :dir="dir">
-      <p id="partner-name">{{ labelOf('partners', partner.id) }}</p>
-      <p id="partner-location">
-        <span v-if="info.city">{{ info.city }}, </span>{{ labelOf('countries', partner.country_id) }}
-      </p>
-
-      <div id="partner-links-container">
-        <div id="partner-links">
-          <button :class="{ active: tab === 'description' }" @click="tab = 'description'">{{ $t('partner.info.about') }}</button>
-          <template v-if="hasContact">
-            <span class="divider">|</span>
-            <button :class="{ active: tab === 'contact' }" @click="tab = 'contact'">{{ $t('partner.info.contact') }}</button>
-          </template>
-          <template v-if="partner.logos?.length">
-            <span class="divider">|</span>
-            <button :class="{ active: tab === 'logo' }" @click="tab = 'logo'">{{ $t('partner.info.logo') }}</button>
-          </template>
-          <template v-if="website">
-            <span class="divider">|</span>
-            <a :href="website" target="_blank" rel="noopener">↗ {{ $t('gallery.action.partnerHomepage') }}</a>
-          </template>
-        </div>
-        <div id="partner-objects-link" v-if="partner.item_count">
-          <RouterLink class="legacy-button" :to="partnerObjectsRoute(partner)">{{ $t('gallery.partner.viewObjects') }}</RouterLink>
-        </div>
+  <RecordView :spec="partnerSheet" :id="props.id" class="partner-profile-page">
+    <template #header="{ record, text, languages, language, select, ready }">
+      <div id="profile-languages">
+        <RecordLanguages :languages="languages" :language="language" @select="select" />
       </div>
 
-      <div id="profile-photo-wrapper">
-        <div class="profile-photo-container">
-          <template v-if="photos.length">
-            <div class="profile-photo" @click="lightbox = true">
-              <img :src="photos[currentPhoto].url" :alt="labelOf('partners', partner.id)" />
-            </div>
-            <div id="profile-thumbnail-container" v-if="photos.length > 1">
-              <div
-                v-for="(pic, index) in photos"
-                :key="pic.url"
-                class="profile-thumbnail"
-                :class="{ active: index === currentPhoto }"
-                @click="currentPhoto = index"
-              >
-                <img :src="pic.url" :alt="`${labelOf('partners', partner.id)} — ${index + 1}`" />
-                <div class="tooltip-text" v-if="pic.photographer || pic.copyright">
-                  <div v-if="pic.photographer">{{ t('record.media.photograph') }}: {{ pic.photographer }}</div>
-                  <div v-if="pic.copyright">© {{ pic.copyright }}</div>
-                </div>
-              </div>
-            </div>
-          </template>
+      <BackLink />
+
+      <div v-if="!ready" class="loader">{{ t('core.status.loading') }}</div>
+      <template v-else>
+        <p id="partner-name">{{ labelOf('partners', record.id) }}</p>
+        <p id="partner-location">
+          <span v-if="text.city">{{ text.city }}, </span>{{ labelOf('countries', record.country_id) }}
+        </p>
+
+        <div id="partner-links-container">
+          <div id="partner-links">
+            <button :class="{ active: tab === 'description' }" @click="tab = 'description'">{{ t('partner.info.about') }}</button>
+            <template v-if="hasContact(record, text)">
+              <span class="divider">|</span>
+              <button :class="{ active: tab === 'contact' }" @click="tab = 'contact'">{{ t('partner.info.contact') }}</button>
+            </template>
+            <template v-if="record.logos?.length">
+              <span class="divider">|</span>
+              <button :class="{ active: tab === 'logo' }" @click="tab = 'logo'">{{ t('partner.info.logo') }}</button>
+            </template>
+            <template v-if="website(text)">
+              <span class="divider">|</span>
+              <a :href="website(text)" target="_blank" rel="noopener">↗ {{ t('partner.nav.homepage') }}</a>
+            </template>
+          </div>
+          <div id="partner-objects-link" v-if="record.item_count">
+            <RouterLink class="legacy-button" :to="partnerObjectsRoute(record)">{{ t('gallery.partner.viewObjects') }}</RouterLink>
+          </div>
         </div>
+      </template>
+    </template>
+
+    <template #before-sheet="{ record, text, language, ready }">
+      <div v-if="ready" id="profile-photo-wrapper">
+        <MediaGallery
+          v-if="record.images?.length"
+          class="profile-photo-container"
+          :images="record.images.map((p) => ({
+            url: p.url,
+            alt: labelOf('partners', record.id),
+            caption: p.captions?.[language] ?? p.captions?.en ?? '',
+            photographer: p.photographer ?? '',
+            copyright: p.copyright ?? '',
+          }))"
+        />
 
         <div id="profile-info-container">
-          <div class="prose" v-if="tab === 'description'" v-html="md(info.description)"></div>
+          <div class="prose" v-if="tab === 'description'" v-html="md(text.description)"></div>
 
           <div v-else-if="tab === 'contact'">
             <p class="contact-header">{{ $t('partner.info.addresses') }}</p>
-            <div class="prose" v-html="md(info.address)"></div>
-            <p v-if="info.phone">{{ $t('gallery.partner.phone') }} {{ info.phone }}</p>
-            <p v-if="info.email"><a :href="`mailto:${info.email}`">{{ info.email }}</a></p>
-            <p v-if="website"><a :href="website" target="_blank" rel="noopener">{{ info.website }}</a></p>
-            <div class="contact-person" v-for="person in contacts" :key="person.name ?? person.email">
+            <div class="prose" v-html="md(text.address)"></div>
+            <p v-if="text.phone">{{ $t('partner.info.phone') }} {{ text.phone }}</p>
+            <p v-if="text.email"><a :href="`mailto:${text.email}`">{{ text.email }}</a></p>
+            <p v-if="website(text)"><a :href="website(text)" target="_blank" rel="noopener">{{ text.website }}</a></p>
+            <div class="contact-person" v-for="person in contacts(record)" :key="person.name ?? person.email">
               <p class="contact-title" v-if="person.title">{{ person.title }}</p>
               <p v-if="person.name">{{ person.name }}</p>
-              <p v-if="person.phone">{{ $t('gallery.partner.phone') }} {{ person.phone }}</p>
-              <p v-if="person.fax">{{ $t('gallery.partner.fax') }} {{ person.fax }}</p>
+              <p v-if="person.phone">{{ $t('partner.info.phone') }} {{ person.phone }}</p>
+              <p v-if="person.fax">{{ $t('partner.info.fax') }} {{ person.fax }}</p>
               <p v-if="person.email"><a :href="`mailto:${person.email}`">{{ person.email }}</a></p>
             </div>
-            <div class="additional-urls" v-if="partner.additional_urls?.length">
-              <p v-for="entry in partner.additional_urls" :key="entry.url">
+            <div class="additional-urls" v-if="record.additional_urls?.length">
+              <p v-for="entry in record.additional_urls" :key="entry.url">
                 <a :href="entry.url" target="_blank" rel="noopener">{{ entry.url }}</a>
               </p>
             </div>
           </div>
 
           <div id="partner-logo-container" v-else-if="tab === 'logo'">
-            <img v-for="logo in partner.logos" :key="logo.url" :src="logo.url" :alt="labelOf('partners', partner.id)" />
+            <img v-for="logo in record.logos" :key="logo.url" :src="logo.url" :alt="labelOf('partners', record.id)" />
           </div>
         </div>
       </div>
+    </template>
 
+    <template #after-sheet="{ record }">
       <PartnerMap
-        :latitude="partner.latitude"
-        :longitude="partner.longitude"
-        :zoom="partner.map_zoom"
-        :label="labelOf('partners', partner.id)"
+        :latitude="record.latitude"
+        :longitude="record.longitude"
+        :zoom="record.map_zoom"
+        :label="labelOf('partners', record.id)"
+        map-title-entry="partner.map.onTheMap"
+        map-of-entry="partner.map.mapOf"
+        open-map-link-entry="gallery.action.openInOpenStreetMap"
       />
-    </div>
-
-    <div id="lightbox-container" v-if="lightbox" @click="lightbox = false">
-      <button class="lightbox-control" v-if="photos.length > 1" @click.stop="slide('left')">‹</button>
-      <img :src="photos[currentPhoto].url" :alt="labelOf('partners', partner.id)" />
-      <button class="lightbox-control" v-if="photos.length > 1" @click.stop="slide('right')">›</button>
-    </div>
-  </div>
-  <NotFoundView v-else />
+    </template>
+  </RecordView>
 </template>
 
 <style scoped>
-#partner-profile-wrapper { background: #fff; width: 100%; min-height: 400px; padding-bottom: 40px; }
+.partner-profile-page { background: #fff; width: 100%; min-height: 400px; padding-bottom: 40px; }
 #profile-languages { display: flex; flex-wrap: wrap; gap: 2px; background: var(--background-color); padding: 6px 20px; }
-.languages-button {
-  background: none;
-  border: 1px solid var(--theme-medium);
-  color: var(--theme-dark);
-  font-family: inherit;
-  font-size: 13px;
-  padding: 3px 10px;
-  cursor: pointer;
-}
-.languages-button.language-selected { background: var(--theme-medium-dark); color: #fff; border-color: var(--theme-medium-dark); }
 
-#partner-profile { padding: 0 40px; }
+.partner-profile-page :deep(.mwnf-record__body) { padding: 0 40px; }
 #partner-name { font-size: 24px; font-weight: 700; color: var(--theme-dark); }
 #partner-location { color: #555; margin-bottom: 12px; }
 
@@ -230,25 +172,6 @@ const website = computed(() => {
 
 #profile-photo-wrapper { display: flex; gap: 26px; align-items: flex-start; padding-top: 18px; }
 .profile-photo-container { flex: 0 0 38%; max-width: 38%; }
-.profile-photo { cursor: zoom-in; }
-.profile-photo img { width: 100%; display: block; }
-#profile-thumbnail-container { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 8px; }
-.profile-thumbnail { position: relative; width: 64px; height: 64px; cursor: pointer; border: 2px solid transparent; }
-.profile-thumbnail.active { border-color: var(--theme-medium-dark); }
-.profile-thumbnail img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.tooltip-text {
-  display: none;
-  position: absolute;
-  bottom: 100%;
-  inset-inline-start: 0;
-  background: rgba(0,0,0,0.8);
-  color: #fff;
-  font-size: 11px;
-  padding: 6px;
-  width: 200px;
-  z-index: 20;
-}
-.profile-thumbnail:hover .tooltip-text { display: block; }
 
 #profile-info-container { flex: 1; min-width: 0; line-height: 1.55; }
 .contact-header { font-weight: 700; color: var(--theme-dark); margin-bottom: 4px; }
@@ -257,18 +180,6 @@ const website = computed(() => {
 #profile-info-container a { color: var(--link-blue); }
 #partner-logo-container img { max-width: 200px; display: block; margin-bottom: 12px; }
 .additional-urls { margin-top: 12px; word-break: break-all; }
-
-#lightbox-container {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 300;
-}
-#lightbox-container img { max-width: 88vw; max-height: 88vh; }
-.lightbox-control { background: none; border: none; color: #fff; font-size: 60px; cursor: pointer; padding: 0 20px; }
 
 @media only screen and (max-width: 849px) {
   #profile-photo-wrapper { flex-direction: column; }

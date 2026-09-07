@@ -1,7 +1,7 @@
 <script setup>
+import { BackLink } from '@metanull/viewer-layout/content'
 import { TimelineResultsView } from '@metanull/viewer-layout/views'
 import { timelineResults } from '../composables/useTimeline.js'
-import BackLink from '../components/BackLink.vue'
 
 // Timeline results, on the platform's composed timeline view: the filters in
 // the URL, the country and period controls, the events list, its pagination

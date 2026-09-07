@@ -1,54 +1,47 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
-import { sortChronological, useListQuery, usePagination } from '@metanull/viewer-core'
-import { Pagination, RecordGrid } from '@metanull/viewer-layout/content'
-import {
-  items, partnerById, partnerRoute, labelOf, tr, defaultLang,
-} from '../composables/useGalleryData.js'
-import { PAGE_SIZE, useGridRecords } from '../composables/useCollection.js'
-import BackLink from '../components/BackLink.vue'
+import { Pagination } from '@metanull/viewer-layout/content'
+import { CatalogueResultsView } from '@metanull/viewer-layout/views'
+import { BackLink } from '@metanull/viewer-layout/content'
+import { partnerById, partnerRoute, labelOf, tr, defaultLang } from '../composables/useGalleryData.js'
+import { partnerObjects } from '../composables/partner.js'
 
-// The member items one partner holds. Legacy paginated this at the API's page
-// size; the same nine-a-page grid is used here as for collection results.
+// The member items one partner holds, on the platform's composed results
+// view: the join, the sort and the pages are the view's, from the base spec
+// in composables/partner.js, `scope` added here over the route's own id —
+// `CatalogueResultsView` takes no record id of its own, unlike `RecordView`.
 const route = useRoute()
-const gridRecords = useGridRecords()
-const { page, goToPage } = useListQuery()
-
 const partner = computed(() => partnerById.value.get(route.params.id) ?? null)
-const held = computed(() => {
-  const p = partner.value
-  if (!p) return []
-  return sortChronological((items.value ?? []).filter((i) => i.partner_id === p.id), { undated: 'first' })
-})
-const pageInfo = usePagination(held, { page, size: PAGE_SIZE })
-const rows = computed(() => gridRecords(pageInfo.value.rows))
+const spec = computed(() => ({
+  ...partnerObjects,
+  scope: (item) => item.partner_id === route.params.id,
+}))
 
 const city = computed(() => (partner.value ? tr('partners', partner.value.id, defaultLang).city ?? '' : ''))
 </script>
 
 <template>
   <div id="partner-objects-container" v-if="partner">
-    <BackLink />
+    <CatalogueResultsView :spec="spec">
+      <template #before>
+        <BackLink />
+        <div id="partner-objects-header">
+          <p id="partner-name">{{ labelOf('partners', partner.id) }}</p>
+          <p id="partner-location">{{ [city, labelOf('countries', partner.country_id)].filter(Boolean).join(', ') }}</p>
+        </div>
+      </template>
 
-    <div id="partner-objects-header">
-      <p id="partner-name">{{ labelOf('partners', partner.id) }}</p>
-      <p id="partner-location">{{ [city, labelOf('countries', partner.country_id)].filter(Boolean).join(', ') }}</p>
-      <p id="partner-count">{{ pageInfo.total }} {{ $t('partner.item.objectsInSite') }}</p>
-    </div>
+      <template #actions="{ pageInfo, goToPage }">
+        <Pagination class="pages" :page-info="pageInfo" jump @navigate="goToPage" />
+      </template>
 
-    <Pagination class="pages" :page-info="pageInfo" jump @navigate="goToPage" />
-
-    <div id="content-container">
-      <RecordGrid :records="rows" :action-label="$t('gallery.action.seeDatabaseEntry')">
-        <template #empty><p class="no-results">{{ $t('gallery.partner.noObjects') }}</p></template>
-      </RecordGrid>
-      <div id="profile-link-container">
-        <RouterLink id="profile-link" :to="partnerRoute(partner)">➤ {{ $t('gallery.action.partnerProfile') }}</RouterLink>
-      </div>
-    </div>
-
-    <Pagination class="pages" :page-info="pageInfo" jump @navigate="goToPage" />
+      <template #after>
+        <div id="profile-link-container">
+          <RouterLink id="profile-link" :to="partnerRoute(partner)">➤ {{ $t('gallery.action.partnerProfile') }}</RouterLink>
+        </div>
+      </template>
+    </CatalogueResultsView>
   </div>
 </template>
 
@@ -57,10 +50,8 @@ const city = computed(() => (partner.value ? tr('partners', partner.value.id, de
 #partner-objects-header { padding: 0 20px 12px; }
 #partner-name { font-size: 22px; font-weight: 700; color: var(--theme-dark); }
 #partner-location { color: #555; }
-#partner-count { font-size: 13px; color: #666; margin-top: 3px; }
-.pages { padding-inline: 20px; }
-#content-container { padding: 0 20px; }
+#partner-objects-container :deep(.mwnf-summary) { padding: 0 20px 12px; font-size: 13px; color: #666; }
+#partner-objects-container :deep(.mwnf-catalogue__body) { padding: 0 20px 20px; }
 #profile-link-container { padding-top: 16px; }
 #profile-link { color: var(--link-blue); }
-.no-results { padding: 30px 0; }
 </style>
