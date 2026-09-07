@@ -5,7 +5,7 @@ import { projectName, searchGlossary, useI18n, useSiteConfig } from '@metanull/v
 import { RecordLanguages, RelatedRecords, SheetSection } from '@metanull/viewer-layout/content'
 import { RecordView } from '@metanull/viewer-layout/views'
 import {
-  partnerLabel, partnerById, partnerRoute, dynastyById, translations, defaultLang, md, itemById,
+  labelOf, partnerById, partnerRoute, dynastyById, translations, defaultLang, md, itemById,
 } from '../composables/useGalleryData.js'
 import { findEvents, eraLabel, roundOutward, timelineCountries, countryIdForCode } from '../composables/useTimeline.js'
 import { itemSheet } from '../composables/sheet.js'
@@ -120,7 +120,7 @@ function printSheet() {
     </template>
 
     <template #museum="{ record }">
-      <RouterLink :to="partnerRoute(partnerById.get(record.partner_id))">{{ partnerLabel(record.partner_id) }}</RouterLink>
+      <RouterLink :to="partnerRoute(partnerById.get(record.partner_id))">{{ labelOf('partners', record.partner_id) }}</RouterLink>
     </template>
 
     <template #related="{ record, language, records, outside }">
@@ -153,21 +153,21 @@ function printSheet() {
             <div class="popout-close" @click="openPopup = null">✕</div>
             <div class="popout-title">{{ $t('gallery.section.timeline') }}</div>
             <div class="popout-option">
-              <label>{{ $t('gallery.timeline.searchIntro') }}</label>
+              <label>{{ $t('timeline.form.searchIntro') }}</label>
               <select v-model="timelineCountry">
-                <option v-for="c in timelineCountries" :key="c[0]" :value="c[0]">{{ c[1] ?? $t('gallery.timeline.allCountries') }}</option>
+                <option v-for="c in timelineCountries" :key="c[0]" :value="c[0]">{{ c[1] ?? $t('timeline.form.allCountries') }}</option>
               </select>
               <RouterLink
                 class="popout-full-link"
                 :to="{ name: 'timeline-results', query: { c: timelineCountry, start: itemRange[0], end: itemRange[1] } }"
-              >➤ {{ $t('gallery.timeline.beginFullSearch') }}</RouterLink>
+              >➤ {{ $t('timeline.action.beginFullSearch') }}</RouterLink>
             </div>
             <div class="popout-scroll">
               <div class="popout-subheader">
-                {{ timelineCountries.find(c => c[0] === timelineCountry)?.[1] ?? $t('gallery.timeline.allCountries') }},
+                {{ timelineCountries.find(c => c[0] === timelineCountry)?.[1] ?? $t('timeline.form.allCountries') }},
                 {{ era(itemRange[0]) }} – {{ era(itemRange[1]) }}
               </div>
-              <div v-if="!itemEvents.length" class="popout-empty">{{ $t('gallery.timeline.noEvents') }}</div>
+              <div v-if="!itemEvents.length" class="popout-empty">{{ $t('timeline.results.noEvents') }}</div>
               <div class="timeline-event" v-for="event in itemEvents" :key="event.id">
                 <div class="timeline-date">{{ era(event.year_from) }}</div>
                 <div v-html="md(event.text.description)"></div>
@@ -178,7 +178,7 @@ function printSheet() {
 
         <!-- Glossary tool -->
         <div>
-          <p class="related-line clickable" @click="togglePopup('glossaryTool')">➤ {{ t('record.glossary.heading') }}</p>
+          <p class="related-line clickable" @click="togglePopup('glossaryTool')">➤ {{ t('record.glossary.tool') }}</p>
           <div class="popout" v-if="openPopup === 'glossaryTool'">
             <div class="popout-close" @click="openPopup = null">✕</div>
             <div class="popout-title">{{ t('record.glossary.heading') }}</div>
@@ -196,12 +196,12 @@ function printSheet() {
 
         <!-- Dynasties -->
         <div v-if="dynastyEntries(record, language).length">
-          <p class="related-sub">{{ t('gallery.nav.islamicDynasties') }}</p>
+          <p class="related-sub">{{ t('record.dynasty.list') }}</p>
           <div v-for="dynasty in dynastyEntries(record, language)" :key="dynasty.id">
             <p class="related-line clickable" @click="togglePopup(`dynasty:${dynasty.id}`)">➤ {{ dynasty.name }}</p>
             <div class="popout" v-if="openPopup === `dynasty:${dynasty.id}`">
               <div class="popout-close" @click="openPopup = null">✕</div>
-              <div class="popout-title">{{ t('gallery.nav.dynastiesHeading') }}</div>
+              <div class="popout-title">{{ t('record.dynasty.heading') }}</div>
               <div class="popout-scroll">
                 <div class="dynasty-name">{{ dynasty.name }}</div>
                 <p v-if="dynasty.also_known_as">{{ dynasty.also_known_as }}</p>

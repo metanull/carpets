@@ -2,7 +2,7 @@
 import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import {
-  partners, partnerRoute, partnerObjectsRoute, partnerLabel, countryLabel,
+  partners, partnerRoute, partnerObjectsRoute, labelOf,
   tr, defaultLang, mdStrip,
 } from '../composables/useGalleryData.js'
 
@@ -25,9 +25,9 @@ const featured = computed(() => {
     const t = tr('partners', p.id, defaultLang)
     return {
       partner: p,
-      name: partnerLabel(p.id),
+      name: labelOf('partners', p.id),
       city: t.city ?? '',
-      country: countryLabel(p.country_id),
+      country: labelOf('countries', p.country_id),
       // Legacy truncated the carousel blurb rather than showing a whole profile.
       description: truncate(mdStrip(t.description ?? ''), 420),
       image: p.images?.[0]?.url ?? null,

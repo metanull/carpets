@@ -4,7 +4,7 @@ import { useRoute, RouterLink } from 'vue-router'
 import { sortChronological, useListQuery, usePagination } from '@metanull/viewer-core'
 import { Pagination, RecordGrid } from '@metanull/viewer-layout/content'
 import {
-  items, partnerById, partnerRoute, partnerLabel, countryLabel, tr, defaultLang,
+  items, partnerById, partnerRoute, labelOf, tr, defaultLang,
 } from '../composables/useGalleryData.js'
 import { PAGE_SIZE, useGridRecords } from '../composables/useCollection.js'
 import BackLink from '../components/BackLink.vue'
@@ -32,9 +32,9 @@ const city = computed(() => (partner.value ? tr('partners', partner.value.id, de
     <BackLink />
 
     <div id="partner-objects-header">
-      <p id="partner-name">{{ partnerLabel(partner.id) }}</p>
-      <p id="partner-location">{{ [city, countryLabel(partner.country_id)].filter(Boolean).join(', ') }}</p>
-      <p id="partner-count">{{ pageInfo.total }} {{ $t('gallery.partner.objectsInGallery') }}</p>
+      <p id="partner-name">{{ labelOf('partners', partner.id) }}</p>
+      <p id="partner-location">{{ [city, labelOf('countries', partner.country_id)].filter(Boolean).join(', ') }}</p>
+      <p id="partner-count">{{ pageInfo.total }} {{ $t('partner.item.objectsInSite') }}</p>
     </div>
 
     <Pagination class="pages" :page-info="pageInfo" jump @navigate="goToPage" />

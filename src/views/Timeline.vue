@@ -29,8 +29,8 @@ function goToResults() {
   <div id="timeline-page">
     <div id="timeline-form">
       <select class="legacy-select" v-model="country">
-        <option value="" disabled>{{ $t('gallery.timeline.selectCountry') }}</option>
-        <option v-for="c in timelineCountries" :key="c[0]" :value="c[0]">{{ c[1] ?? $t('gallery.timeline.allCountries') }}</option>
+        <option value="" disabled>{{ $t('timeline.form.selectCountry') }}</option>
+        <option v-for="c in timelineCountries" :key="c[0]" :value="c[0]">{{ c[1] ?? $t('timeline.form.allCountries') }}</option>
       </select>
 
       <div id="timeline-dates-container">
