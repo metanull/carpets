@@ -30,7 +30,7 @@ function goToResults() {
     <div id="timeline-form">
       <select class="legacy-select" v-model="country">
         <option value="" disabled>{{ $t('gallery.timeline.selectCountry') }}</option>
-        <option v-for="c in timelineCountries" :key="c[0]" :value="c[0]">{{ c[1] }}</option>
+        <option v-for="c in timelineCountries" :key="c[0]" :value="c[0]">{{ c[1] ?? $t('gallery.timeline.allCountries') }}</option>
       </select>
 
       <div id="timeline-dates-container">

@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
-import { useI18n, useListQuery, usePagination } from '@metanull/viewer-core'
+import { dateRange, useI18n, useListQuery, usePagination } from '@metanull/viewer-core'
 import { Pagination } from '@metanull/viewer-layout/content'
 import { items, md } from '../composables/useGalleryData.js'
 import {
@@ -53,21 +53,14 @@ function goToResults() {
 }
 
 // Member items in the same country and period — the condition legacy used to
-// decide whether to offer the gallery view.
+// decide whether to offer the gallery view. A null country id means every
+// country, the same join TimelineGallery.vue does for its own rows, so the
+// link's count always matches what that page will show.
 const galleryItems = computed(() => {
   const countryId = countryIdForCode(String(route.query.c ?? 'all'))
-  if (!countryId) return []
-  const from = route.query.start ? Number(route.query.start) : null
-  const to = route.query.end ? Number(route.query.end) : null
-  return items.value.filter(i => {
-    if (i.country_id !== countryId) return false
-    const itemStart = i.start_date
-    const itemEnd = i.end_date ?? i.start_date
-    if (!Number.isFinite(itemStart)) return false
-    if (from != null && itemEnd < from) return false
-    if (to != null && itemStart > to) return false
-    return true
-  })
+  const list = items.value.filter(i =>
+    Number.isFinite(i.start_date) && (!countryId || i.country_id === countryId))
+  return dateRange(list, { begin: route.query.start, end: route.query.end, mode: 'overlap' })
 })
 </script>
 
@@ -97,7 +90,7 @@ const galleryItems = computed(() => {
         </label>
         <label>{{ $t('catalogue.facet.country') }}
           <select class="legacy-select" v-model="country">
-            <option v-for="c in timelineCountries" :key="c[0]" :value="c[0]">{{ c[1] }}</option>
+            <option v-for="c in timelineCountries" :key="c[0]" :value="c[0]">{{ c[1] ?? $t('gallery.timeline.allCountries') }}</option>
           </select>
         </label>
         <button class="legacy-button" @click="goToResults()">{{ $t('core.action.go') }}</button>

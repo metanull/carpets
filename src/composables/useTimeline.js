@@ -91,7 +91,10 @@ export const timelineCountries = computed(() => {
     byCountry.set(timeline.country_id, [legacyCodeOf(timeline), nameFor(timeline)])
   }
   const rows = [...byCountry.values()].sort((a, b) => a[1].localeCompare(b[1]))
-  return [['all', 'All Countries'], ...rows]
+  // The "all" row carries no text of its own — it is a marker, and every
+  // picker that renders this list reads its label through the catalogue
+  // entry `gallery.timeline.allCountries` instead.
+  return [['all', null], ...rows]
 })
 
 /** Display name for an event's country. */

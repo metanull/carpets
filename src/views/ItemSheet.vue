@@ -306,7 +306,7 @@ function printSheet() {
             <div class="popout-option">
               <label>{{ $t('gallery.timeline.searchIntro') }}</label>
               <select v-model="timelineCountry">
-                <option v-for="c in timelineCountries" :key="c[0]" :value="c[0]">{{ c[1] }}</option>
+                <option v-for="c in timelineCountries" :key="c[0]" :value="c[0]">{{ c[1] ?? $t('gallery.timeline.allCountries') }}</option>
               </select>
               <RouterLink
                 class="popout-full-link"
@@ -315,7 +315,7 @@ function printSheet() {
             </div>
             <div class="popout-scroll">
               <div class="popout-subheader">
-                {{ timelineCountries.find(c => c[0] === timelineCountry)?.[1] }},
+                {{ timelineCountries.find(c => c[0] === timelineCountry)?.[1] ?? $t('gallery.timeline.allCountries') }},
                 {{ era(itemRange[0]) }} – {{ era(itemRange[1]) }}
               </div>
               <div v-if="!itemEvents.length" class="popout-empty">{{ $t('gallery.timeline.noEvents') }}</div>
