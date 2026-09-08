@@ -18,12 +18,11 @@ import {
 // spreads every other `config.navigation` field onto this component the same
 // way — `links`, `headerLinks`, `footerLinks`, `sectionTitles`, `search`, all
 // still raw entry names, not text — since this component declares none of
-// them as its own prop. Vue's automatic attribute fallthrough would forward
-// that whole raw set onto the layout `SiteShell`'s single root and clobber
-// its own translated computation with them; `inheritAttrs: false` stops it,
-// since the layout `SiteShell` reads the real values itself, fresh, off
-// `useSiteConfig()` — nothing here needs to forward them.
-defineOptions({ inheritAttrs: false })
+// them as its own prop. Whatever of that raw set falls through onto the
+// layout `SiteShell`'s root no longer matters: from 2.11.1 that component
+// disables its own attribute fallthrough and binds its translated props
+// explicitly, so its rendered links always win over raw entry names
+// (viewer-layout#75) — nothing here needs to guard against them either.
 
 const props = defineProps({
   language: { type: String, default: 'en' },
@@ -73,7 +72,7 @@ const bannerCaption = computed(() => {
     language-placement="header"
     language-style="buttons"
     :header-home="links.portal"
-    :header-eyebrow="isHome ? '' : t('gallery.nav.galleries')"
+    :header-eyebrow="isHome ? '' : t('core.project.galleries')"
     :header-title="isHome ? '' : galleryName"
     header-title-href="#/"
     :banner-image="bannerImage"

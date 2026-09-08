@@ -2,20 +2,18 @@ import { fileURLToPath } from 'node:url'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 
-// This is the shape of @metanull/viewer-core/testing's `defineViewerConfig()`,
-// kept here rather than called: that helper sits in the same barrel
-// (`testing/index.js`) as `mountSite`, which imports `createViewer.js`, which
-// imports the raw `AppRoot.vue`. Vite and Vitest load `vite.config.js` with
-// plain Node, before any `.vue`-aware transform exists, so importing the
-// barrel from here fails immediately with
-// `ERR_UNKNOWN_FILE_EXTENSION` on `AppRoot.vue` — reproducible with nothing
-// but Node itself:
-// `node --input-type=module -e "import('@metanull/viewer-core/testing')"`.
-// Filed as metanull/viewer-core#68. `tests/smoke.test.js` imports the same
-// barrel safely, because Vitest loads test files through its own transform
-// pipeline rather than plain Node. Switch this back to
-// `...defineViewerConfig({ dataPackage: '@metanull/carpets-data', plugins: [vue()] })`
-// once the package exposes it somewhere that does not pull in `.vue`.
+// viewer-core 1.13.1 exposes `defineViewerConfig` from its own `./vite` entry
+// (metanull/viewer-core#68 is fixed at this version: that entry imports only
+// `./testing/viteConfig.js`, not the `testing/index.js` barrel that pulls in
+// `mountSite` → `createViewer.js` → the raw `AppRoot.vue`, so it no longer
+// fails plain Node with `ERR_UNKNOWN_FILE_EXTENSION`). It is not called here
+// even so: `viteConfig.js` builds the `@inventory-data` alias off its own
+// `import.meta.url`, which is the helper module's location inside
+// `node_modules/@metanull/viewer-core/src/testing/`, not this website's own
+// root — every entity load then fails with `Unknown entity "items" in the
+// data package` because the alias points at a `node_modules` that does not
+// exist under the helper's own folder. Filed as metanull/viewer-core#90.
+// This stays the shape every website hand-wrote until that one is fixed too.
 export default defineConfig({
   // GitHub Pages serves the site under /<repo>/; the deploy workflow sets
   // BASE_PATH accordingly. Local dev and root deployments use /.

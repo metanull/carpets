@@ -111,6 +111,15 @@ export default {
   // addresses every DXA config repeats, carpets adding none of its own.
   links: { ...mwnfLinks },
 
+  // The absolute origin this build is deployed at (base path included),
+  // read by viewer-core's `sourceUrl()` for the layout's `SourceCredit` (the
+  // item sheet, the partner profile) — the item sheet's own citation stays
+  // without a permalink (composables/sheet.js's `citation.permalink: false`,
+  // legacy's DXA sheets never carried one). The GitHub Pages address until
+  // the domain is decided — the same host and base path vite.config.js's
+  // `base` serves the build under — so it changes together with the domain.
+  site: { origin: 'https://metanull.github.io/carpets' },
+
   // The canonical routes, one view per page: a section is `/<section>`, a
   // record `/<section>/:id` with the package id, and the language, the page
   // and every filter travel in the query. The 'home' name replaces
