@@ -1,7 +1,10 @@
 /*
  * Global styles shared by every Carpets view: the palette the views and the
- * shell reference, plus the shared building blocks (panels, selects, buttons,
- * prose, project chips) the legacy gallery used across its pages.
+ * shell reference. The building blocks the legacy gallery's own site.css
+ * duplicated (panels, selects, buttons, prose, project chips) are the
+ * layout's `.mwnf-*` content classes now (`@metanull/viewer-layout/style.css`,
+ * imported in main.js) — this file carries only what is actually this
+ * gallery's own: the palette, and the page reset.
  *
  * Page chrome — header, banner, navigation, footer surfaces — is themed
  * through theme/tokens.css instead; this file is the website's own content
@@ -25,17 +28,16 @@
   --theme-light:       #91864d;  /* light menu items */
   --background-color:  #fffff0;  /* page background */
 
-  --light-text:   #ffffff;
   --shadow-grey:  #707070;
   --link-blue:    #0000ff;
 
-  /* Source-project accents — legacy's #info-citation-link colouring */
-  --dia-yellow:  #ffcc00;  /* Discover Islamic Art (ISL / EPM) */
-  --dba-blue:    #001d66;  /* Discover Baroque Art (DBA / BAR) */
-  --sh-red:      #900000;  /* Sharing History (AWE) */
-  --dca-tan:     #6b612b;  /* Discover Carpet Art (DCA) */
-  --g-grey:      #263238;  /* Galleries */
-  --exhibitions: #7f01d4;  /* Exhibitions */
+  /* The other MWNF virtual museums' own accents, for Home.vue's sibling-museum
+     tiles — not the source-project chip on the item sheet, which is
+     `.mwnf-chip--<family>` now, themed by `--mwnf-project-*` (its defaults
+     already carry these same legacy colours, so nothing overrides them here). */
+  --dia-yellow: #ffcc00;  /* Discover Islamic Art (ISL / EPM) */
+  --dba-blue:   #001d66;  /* Discover Baroque Art (DBA / BAR) */
+  --sh-red:     #900000;  /* Sharing History (AWE) */
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -52,74 +54,3 @@ body {
 html[dir='rtl'] body { direction: rtl; }
 
 a { color: inherit; }
-
-/* ── Shared building blocks ─────────────────────────────────────────────── */
-.white-panel { background: #fff; width: 100%; }
-
-.section-label { font-size: 125%; font-weight: 700; }
-
-.legacy-select {
-  height: 35px;
-  width: 100%;
-  max-width: 300px;
-  margin-top: 10px;
-  padding: 5px;
-  font-family: inherit;
-  font-size: 14px;
-  border: 1px solid #999;
-  background: #fff;
-}
-
-.legacy-button {
-  background: var(--theme-medium-dark);
-  color: var(--light-text);
-  border: none;
-  padding: 6px 16px;
-  font-family: inherit;
-  font-size: 14px;
-  cursor: pointer;
-}
-.legacy-button:hover { background: var(--theme-dark); }
-
-.link-blue { color: var(--link-blue); }
-.link-blue:hover { text-decoration: underline; }
-
-.prose a { color: var(--link-blue); }
-.prose p { margin-bottom: 12px; }
-.prose em { font-style: italic; }
-.prose strong { font-weight: 700; }
-.prose ul { margin: 0 0 12px 20px; }
-
-.back-bar { padding: 12px 20px; }
-.back-bar button {
-  background: none;
-  border: none;
-  color: var(--theme-dark);
-  font-family: inherit;
-  font-size: 15px;
-  cursor: pointer;
-}
-.back-bar button:hover { text-decoration: underline; }
-
-.page-heading {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--theme-dark);
-  padding: 20px 20px 0;
-}
-
-/* Source-project colour chips, mirroring legacy's backgroundColor().
-   The table is the platform's, not this gallery's: which projects a gallery
-   draws members from is a property of the export and changes with every
-   reimport, so every key a gallery can meet is listed rather than only the
-   ones currently in use. An unlisted key would render an unstyled chip.
-   Legacy coloured any exhibition-sourced entry with $exhibitions-color. */
-.project-chip { color: #fff; padding: 1px 8px; font-size: 12px; display: inline-block; }
-.project-ISL, .project-EPM { background: var(--dia-yellow); color: #222; }
-.project-DBA, .project-BAR { background: var(--dba-blue); }
-.project-AWE, .project-awe { background: var(--sh-red); }
-.project-DCA { background: var(--dca-tan); }
-.project-GALLERIES { background: var(--g-grey); }
-.project-EXTHE { background: var(--exhibitions); }
-
-.loader { padding: 40px; text-align: center; color: var(--theme-dark); }

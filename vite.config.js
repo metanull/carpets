@@ -2,6 +2,20 @@ import { fileURLToPath } from 'node:url'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 
+// This is the shape of @metanull/viewer-core/testing's `defineViewerConfig()`,
+// kept here rather than called: that helper sits in the same barrel
+// (`testing/index.js`) as `mountSite`, which imports `createViewer.js`, which
+// imports the raw `AppRoot.vue`. Vite and Vitest load `vite.config.js` with
+// plain Node, before any `.vue`-aware transform exists, so importing the
+// barrel from here fails immediately with
+// `ERR_UNKNOWN_FILE_EXTENSION` on `AppRoot.vue` — reproducible with nothing
+// but Node itself:
+// `node --input-type=module -e "import('@metanull/viewer-core/testing')"`.
+// Filed as metanull/viewer-core#68. `tests/smoke.test.js` imports the same
+// barrel safely, because Vitest loads test files through its own transform
+// pipeline rather than plain Node. Switch this back to
+// `...defineViewerConfig({ dataPackage: '@metanull/carpets-data', plugins: [vue()] })`
+// once the package exposes it somewhere that does not pull in `.vue`.
 export default defineConfig({
   // GitHub Pages serves the site under /<repo>/; the deploy workflow sets
   // BASE_PATH accordingly. Local dev and root deployments use /.
@@ -34,11 +48,20 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    // The smoke test mounts the app, which lazily loads the home view and
+    // through it whatever the route declares. On a cold cache that is Vite's
+    // first transform of the whole view graph plus several megabytes of JSON,
+    // and it does not fit in vitest's 5 s default. The budget is for the
+    // machine, not the assertion.
+    testTimeout: 60000,
     server: {
       deps: {
         // viewer-core ships .vue source; Node cannot load it unless Vitest
-        // processes the package instead of externalizing it. viewer-layout's
-        // composed views import viewer-core, so the layout is processed too.
+        // processes the package instead of externalizing it. viewer-layout
+        // is listed too because its composed views (`/views`) import
+        // viewer-core: loaded natively, they would reach the same .vue files
+        // through Node and fail, and would also get a second copy of
+        // viewer-core's records next to the inlined one.
         inline: ['@metanull/viewer-core', '@metanull/viewer-layout'],
       },
     },

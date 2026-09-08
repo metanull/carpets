@@ -18,7 +18,7 @@ const spec = { ...timelineResults, entrance: true }
     <!-- Legacy hardcoded this copy in English; it is a shared entry now, with
          the three project links and the contact address written as Markdown
          links inside it. -->
-    <I18nText id="timeline-description" class="prose" dir="auto" keypath="gallery.timeline.intro" />
+    <I18nText id="timeline-description" class="mwnf-prose" dir="auto" keypath="gallery.timeline.intro" />
   </div>
 </template>
 

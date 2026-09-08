@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createViewer, loadEntities, mergeMessages } from '@metanull/viewer-core'
-import { checkOfferedLanguages } from '@metanull/viewer-core/testing'
+import { loadEntities, mergeMessages } from '@metanull/viewer-core'
+import {
+  checkOfferedLanguages, checkRoutes, checkSectionMeta, checkTextsRendered, mountSite as mountApp,
+} from '@metanull/viewer-core/testing'
 import { catalogues as sharedTexts } from '@metanull/viewer-i18n/gallery'
 import ownTexts from '../locales/en.json'
 import config from '../src/dataset.config.js'
@@ -10,16 +12,10 @@ import config from '../src/dataset.config.js'
 // nothing about the chrome — every text would render as its own name.
 const messages = mergeMessages(sharedTexts, { en: ownTexts })
 
-// Mounted on the address under test, as a visitor arrives from a link.
-async function mountSite(hash = '#/') {
-  window.location.hash = hash
-  const app = createViewer({ ...config, messages })
-  const host = document.createElement('div')
-  document.body.appendChild(host)
-  app.mount(host)
-  const router = app.config.globalProperties.$router
-  await router.isReady()
-  return { app, host, router }
+// Mounted on the address under test, as a visitor arrives from a link. The
+// kit's own `mountSite` does the work every website's smoke test repeated.
+function mountSite(hash = '#/') {
+  return mountApp(config, messages, hash)
 }
 
 describe('website smoke test', () => {
@@ -103,6 +99,24 @@ describe('website smoke test', () => {
     expect(host.querySelector('a[href="#/collection"]')).not.toBeNull()
     app.unmount()
   }, 30000)
+
+  // The about and credits pages are `TextPageView` specs now
+  // (metanull/carpets#36), the same shape the how-to essay already used: no
+  // shell logic of their own, `back: true` for the generic history-or-nothing
+  // link the bare `<BackLink />` they used to mount gave them.
+  it('renders the about page on the composed text page view', async () => {
+    const { app, host } = await mountSite('#/about')
+    expect(host.textContent).toContain('Discover Carpet Art')
+    expect(host.querySelector('.mwnf-prose')).not.toBeNull()
+    app.unmount()
+  }, 20000)
+
+  it('renders the credits page on the composed text page view', async () => {
+    const { app, host } = await mountSite('#/credits')
+    expect(host.textContent).toContain('LOCAL PROJECT TEAMS')
+    expect(host.querySelector('.mwnf-prose')).not.toBeNull()
+    app.unmount()
+  }, 20000)
 
   it('renders the item sheet on the composed record view', async () => {
     const [items] = await loadEntities(['items'])
@@ -221,27 +235,49 @@ describe('website smoke test', () => {
   }, 60000)
 
   it('declares every canonical route by name, and every legacy shape as a redirect', () => {
-    const names = config.extraViews.map((r) => r.name)
-    for (const name of [
-      'home', 'collection', 'collection-results', 'item', 'search-results', 'search-how-to',
-      'partners', 'partner', 'partner-objects', 'timeline', 'timeline-results', 'timeline-gallery',
-      'about', 'credits',
-    ]) {
-      expect(names).toContain(name)
-    }
-    expect(config.extraViews.every((r) => r.name)).toBe(true)
-    const legacy = config.legacyRoutes.map((r) => r.path)
-    for (const path of [
-      '/database-item/:uid(.*)/:language',
-      '/partner/:country/:id/:language',
-      '/partner-objects/:country/:id/:page',
-      '/timeline-gallery/:country/:start/:end/:page',
-    ]) {
-      expect(legacy).toContain(path)
-    }
-    // The catch-all and the not-found page are the router's, not this site's.
-    expect(config.extraViews.some((r) => r.path.includes('pathMatch'))).toBe(false)
+    expect(checkRoutes(config, {
+      names: [
+        'home', 'collection', 'collection-results', 'item', 'search-results', 'search-how-to',
+        'partners', 'partner', 'partner-objects', 'timeline', 'timeline-results', 'timeline-gallery',
+        'about', 'credits',
+      ],
+      legacyPaths: [
+        '/database-item/:uid(.*)/:language',
+        '/partner/:country/:id/:language',
+        '/partner-objects/:country/:id/:page',
+        '/timeline-gallery/:country/:start/:end/:page',
+      ],
+    })).toEqual([])
   })
+
+  // Every route needs a section for the menu to know where it is (the shell's
+  // `useSection()`), which the config-driven `SiteShell` also relies on for
+  // the active menu entry and the banner-title fallback.
+  it('gives every route a section', () => {
+    expect(checkSectionMeta(config)).toEqual([])
+  })
+
+  // The one behaviour a config-driven shell could silently lose: the layout's
+  // `SiteShell` marks a `config.navigation.links` entry active by comparing
+  // its own `section` to `useSection()`, exactly as the local shell used to.
+  it('marks the current section active in the menu, and renders the header, footer and search', async () => {
+    const { app, host } = await mountSite('#/partners')
+    await vi.waitFor(() => expect(host.querySelector('a[href="#/partners"]')).not.toBeNull(), { timeout: 20000 })
+
+    const active = host.querySelector('.mwnf-nav__link--active')
+    expect(active?.getAttribute('href')).toBe('#/partners')
+    expect(active?.getAttribute('aria-current')).toBe('page')
+    // A sibling entry stays unmarked.
+    expect(host.querySelector('a[href="#/timeline"]')?.classList.contains('mwnf-nav__link--active')).toBe(false)
+
+    // The header/footer link lists and the header search box are
+    // `config.navigation`'s now, not a local computed list.
+    expect(host.querySelector('a[href="#/"]')).not.toBeNull()
+    expect(host.querySelector('a[href="https://www.museumwnf.org/about"]')).not.toBeNull()
+    expect(host.querySelector('.mwnf-header__search-input')).not.toBeNull()
+
+    app.unmount()
+  }, 20000)
 
   it('offers the languages the package declares for the site, where the items carry them', () => {
     expect(checkOfferedLanguages(config)).toEqual([])
@@ -304,7 +340,7 @@ describe('website smoke test', () => {
     expect(text).toContain('Tip:')
     // Nothing rendered as a bare entry name, which is what a missing text
     // looks like — there is no exception to throw for one.
-    expect(text).not.toMatch(/\b(carpets|gallery|core|layout)\.[a-z]/i)
+    expect(checkTextsRendered(host, { namespaces: ['carpets', 'gallery', 'core', 'layout'] })).toEqual([])
 
     app.unmount()
   }, 20000)
