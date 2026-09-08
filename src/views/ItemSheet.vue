@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
-import { projectName, useI18n, useSiteConfig } from '@metanull/viewer-core'
+import { projectFamily, projectName, useI18n, useSiteConfig } from '@metanull/viewer-core'
 import { BackLink, DynastyList, GlossaryTool, RecordLanguages, RelatedRecords, SheetSection } from '@metanull/viewer-layout/content'
 import { RecordView } from '@metanull/viewer-layout/views'
 import {
@@ -109,7 +109,7 @@ function printSheet() {
              hand-maintained table with no counterpart in the new model, so
              the source is named, not linked. -->
         <p class="source-reference">
-          <span class="project-chip" :class="`project-${record.project_key}`">{{ record.project_key }}</span>
+          <span class="mwnf-chip" :class="`mwnf-chip--${projectFamily(record.project_key)}`">{{ record.project_key }}</span>
           {{ t('record.sheet.sourceDatabase') }}: {{ sourceProject(record) }}
         </p>
         <p class="source-uid"><code>{{ record.backward_compatibility }}</code></p>
@@ -135,7 +135,7 @@ function printSheet() {
           <!-- Related items this gallery does not ship: the reference it is, awaiting a resolver. -->
           <ul v-if="outside.length" class="reference-list">
             <li v-for="r in outside" :key="r.id">
-              <span class="project-chip" :class="`project-${r.project_key}`">{{ r.project_key }}</span>
+              <span class="mwnf-chip" :class="`mwnf-chip--${projectFamily(r.project_key)}`">{{ r.project_key }}</span>
               <code>{{ r.backward_compatibility }}</code>
               <span class="unresolved-note">{{ $t('gallery.results.notInThisGallery') }}</span>
             </li>

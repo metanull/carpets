@@ -180,4 +180,14 @@
   --mwnf-nav-notice-size: 90%;
   --mwnf-nav-notice-background: #504819;
   --mwnf-nav-notice-color: #ffffff;
+
+  /* ---------- Content classes ---------- */
+  /* Only the two the gallery's own pages actually render (the partner
+     profile's "View objects" button, the loading message): legacy's own
+     `.legacy-button`/`.loader` colours, so the shared class reads as the
+     class it replaced rather than the library's neutral default. */
+  --mwnf-button-background: #6b612b;
+  --mwnf-button-text: #ffffff;
+  --mwnf-button-hover-background: #504819;
+  --mwnf-loader-text: #504819;
 }

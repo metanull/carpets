@@ -19,7 +19,7 @@ import { partnerList } from '../composables/partner.js'
     <PartnerListView :spec="partnerList">
       <template #before>
         <BackLink />
-        <I18nText id="partners-list-description" class="prose" dir="auto" keypath="gallery.partners.intro" />
+        <I18nText id="partners-list-description" class="mwnf-prose" dir="auto" keypath="gallery.partners.intro" />
       </template>
 
       <template #row="{ partner, row }">

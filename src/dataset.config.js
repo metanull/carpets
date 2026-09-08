@@ -22,6 +22,21 @@ const languages = offeredLanguages()
 const CHROME = ['gallery', 'items', 'partners', 'countries']
 const meta = sectionMeta(CHROME)
 
+// The banner title over a section page: the section the route declares,
+// named — each name written out for the check. The empty-string key is the
+// router's own catch-all, which carries no `meta.section` at all, so
+// `useSection()` reads it as `''`; legacy still owed that page a banner
+// title, so the fallback lives here rather than nowhere.
+const SECTION_TITLES = {
+  collection: 'gallery.section.collection',
+  database: 'gallery.section.database',
+  partners: 'gallery.section.partners',
+  timeline: 'gallery.section.timeline',
+  about: 'gallery.section.about',
+  credits: 'gallery.section.credits',
+  '': 'gallery.section.error',
+}
+
 export default {
   // The dataset package this website renders. Must match the alias in
   // vite.config.js and the dependency in package.json.
@@ -40,10 +55,50 @@ export default {
 
   shell: SiteShell,
 
-  // Props for the shell: the switcher's labels come from the package, not
-  // from a translator.
+  // The layout's `SiteShell` (mounted from src/SiteShell.vue) reads this
+  // instead of a shell rebuilding it: the switcher's labels (from the
+  // package, not a translator), the menu — legacy's five site sections, each
+  // entry's `section` the same string its own route's `meta.section` carries,
+  // so the active one follows `useSection()` — the portal's My Collection
+  // link (no section: it never highlights), the header/footer link lists,
+  // the section-title map the banner falls back to, and the header search
+  // box's target.
   navigation: {
     languages: languageLabels(languages),
+    links: [
+      { section: 'about', label: 'gallery.nav.about', to: { name: 'about' } },
+      { section: 'collection', label: 'gallery.nav.collection', to: { name: 'collection' } },
+      { section: 'partners', label: 'gallery.nav.partners', to: { name: 'partners' } },
+      { section: 'timeline', label: 'gallery.nav.timeline', to: { name: 'timeline' } },
+      { section: 'credits', label: 'gallery.nav.credits', to: { name: 'credits' } },
+      { label: 'gallery.nav.myCollection', href: mwnfLinks.myCollection, external: true },
+    ],
+    headerLinks: [
+      { label: 'core.nav.home', to: { name: 'home' } },
+      { label: 'gallery.nav.allGalleries', href: `${mwnfLinks.galleries}/list/1`, external: true },
+    ],
+    footerLinks: [
+      { label: 'gallery.footer.aboutMwnf', href: mwnfLinks.about, external: true },
+      { label: 'gallery.footer.contact', href: mwnfLinks.contact, external: true },
+      { label: 'gallery.footer.legalNotice', href: mwnfLinks.legalNotice, external: true },
+      { label: 'gallery.footer.credits', href: mwnfLinks.credits, external: true },
+      { label: 'gallery.footer.cookies', href: mwnfLinks.cookies, external: true },
+    ],
+    sectionTitles: SECTION_TITLES,
+    search: { route: 'search-results', key: 'q', placeholder: 'gallery.search.placeholder', submitLabel: 'catalogue.search.submit', empty: 'all-objects' },
+  },
+
+  // The banner: `variant`, `eyebrow` and `enter` depend only on the section,
+  // so `SiteShell` derives them here; the image and the caption depend on
+  // the loaded gallery record, which no config function can read, so
+  // src/SiteShell.vue still passes those two straight through.
+  banner: {
+    variant: ({ section }) => (section === 'home' ? 'strip' : 'section'),
+    eyebrow: ({ section, t }) => (section === 'home' ? t('gallery.banner.discoverGalleries') : ''),
+    captionLabel: 'gallery.banner.detailFrom',
+    enter: ({ section, t }) => (section === 'home'
+      ? { label: '»', href: '#/collection', ariaLabel: t('gallery.action.goToCollection') }
+      : null),
   },
 
   // Gallery chrome images live on the legacy media server and were never

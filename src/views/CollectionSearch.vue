@@ -44,7 +44,7 @@ const collectionSearchSpec = computed(() => ({
          middle of the first sentence. It is a shared entry now, and it names
          "this Gallery" instead: a text takes nothing inserted into it, and the
          three internal links are Markdown links to the same hash routes. -->
-    <I18nText id="description" class="prose" dir="auto" keypath="gallery.collection.intro" />
+    <I18nText id="description" class="mwnf-prose" dir="auto" keypath="gallery.collection.intro" />
   </div>
 </template>
 

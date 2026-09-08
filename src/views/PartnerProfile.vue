@@ -51,7 +51,7 @@ function website(text) {
 
       <BackLink />
 
-      <div v-if="!ready" class="loader">{{ t('core.status.loading') }}</div>
+      <div v-if="!ready" class="mwnf-loader">{{ t('core.status.loading') }}</div>
       <template v-else>
         <p id="partner-name">{{ labelOf('partners', record.id) }}</p>
         <p id="partner-location">
@@ -75,7 +75,7 @@ function website(text) {
             </template>
           </div>
           <div id="partner-objects-link" v-if="record.item_count">
-            <RouterLink class="legacy-button" :to="partnerObjectsRoute(record)">{{ t('gallery.partner.viewObjects') }}</RouterLink>
+            <RouterLink class="mwnf-button" :to="partnerObjectsRoute(record)">{{ t('gallery.partner.viewObjects') }}</RouterLink>
           </div>
         </div>
       </template>
@@ -96,11 +96,11 @@ function website(text) {
         />
 
         <div id="profile-info-container">
-          <div class="prose" v-if="tab === 'description'" v-html="md(text.description)"></div>
+          <div class="mwnf-prose" v-if="tab === 'description'" v-html="md(text.description)"></div>
 
           <div v-else-if="tab === 'contact'">
             <p class="contact-header">{{ $t('partner.info.addresses') }}</p>
-            <div class="prose" v-html="md(text.address)"></div>
+            <div class="mwnf-prose" v-html="md(text.address)"></div>
             <p v-if="text.phone">{{ $t('partner.info.phone') }} {{ text.phone }}</p>
             <p v-if="text.email"><a :href="`mailto:${text.email}`">{{ text.email }}</a></p>
             <p v-if="website(text)"><a :href="website(text)" target="_blank" rel="noopener">{{ text.website }}</a></p>
@@ -126,14 +126,14 @@ function website(text) {
     </template>
 
     <template #after-sheet="{ record }">
+      <!-- 2.10.0's `PartnerMap` names its own three entries by default
+           (`partner.map.map`, `.mapOf`, `.openInOpenStreetMap`); this gallery
+           no longer overrides them. -->
       <PartnerMap
         :latitude="record.latitude"
         :longitude="record.longitude"
         :zoom="record.map_zoom"
         :label="labelOf('partners', record.id)"
-        map-title-entry="partner.map.onTheMap"
-        map-of-entry="partner.map.mapOf"
-        open-map-link-entry="gallery.action.openInOpenStreetMap"
       />
     </template>
   </RecordView>

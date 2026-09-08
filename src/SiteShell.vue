@@ -1,26 +1,36 @@
 <script setup>
-// The Carpets page chrome: `PageShell` from @metanull/viewer-layout, filled
-// from props. The only things this component adds are the values that depend
-// on the route or the language — which banner shows, what the section is
-// called, what the switcher offers — and the MWNF mark in the header.
+// The Carpets page chrome: the layout's own `SiteShell`, composed from
+// `dataset.config.js`'s `navigation` and `banner` (the menu, the header and
+// footer link lists, the section-title map, the search box, the banner
+// variant/eyebrow/enter). What is left here is what only a loaded record can
+// answer — the banner's own image and caption, the home page's title — and
+// the MWNF mark in the header.
 import { computed } from 'vue'
 import { useI18n, useSection, useSiteConfig } from '@metanull/viewer-core'
-import { PageShell } from '@metanull/viewer-layout'
-import { useRouter } from 'vue-router'
+import { SiteShell } from '@metanull/viewer-layout/components'
 import {
   gallery, chromeImage, itemById, labelOf, tr, defaultLang, manifest,
 } from './composables/useGalleryData.js'
 
 // `language`, `languages` and `update:language` are the shell contract of
 // viewer-core: the language the application is in, the languages it offers
-// (labelled, from dataset.config.js) and the event that sets it.
+// (labelled, from dataset.config.js) and the event that sets it. `AppRoot`
+// spreads every other `config.navigation` field onto this component the same
+// way — `links`, `headerLinks`, `footerLinks`, `sectionTitles`, `search`, all
+// still raw entry names, not text — since this component declares none of
+// them as its own prop. Vue's automatic attribute fallthrough would forward
+// that whole raw set onto the layout `SiteShell`'s single root and clobber
+// its own translated computation with them; `inheritAttrs: false` stops it,
+// since the layout `SiteShell` reads the real values itself, fresh, off
+// `useSiteConfig()` — nothing here needs to forward them.
+defineOptions({ inheritAttrs: false })
+
 const props = defineProps({
   language: { type: String, default: 'en' },
   languages: { type: Array, default: () => [] },
 })
 const emit = defineEmits(['update:language'])
 
-const router = useRouter()
 const { t, locale } = useI18n()
 const { links } = useSiteConfig()
 
@@ -28,47 +38,20 @@ const galleryName = computed(() =>
   manifest.site?.names?.[locale.value] ?? manifest.site?.names?.en ?? gallery.value?.names?.en ?? ''
 )
 // The section a route declares (`meta.section` in dataset.config.js): the
-// banner title and the active menu entry both read it.
+// layout's `SiteShell` reads it for the active menu entry and the banner
+// title fallback; the home title below still needs it directly, since the
+// gallery's own name is not something `config.navigation.sectionTitles` (an
+// entry name) can express.
 const section = useSection()
 const isHome = computed(() => section.value === 'home')
 const currentYear = new Date().getFullYear()
 
-function submitSearch(term) {
-  router.push({ name: 'search-results', query: { q: term || 'all-objects' } })
-}
-
-// Legacy's menu: five site sections plus the portal's My Collection. `route`
-// is the section's path segment and its name, never a text; each label is
-// written out so the check that every entry a page asks for exists can read it.
-const navLinks = computed(() => [
-  { route: 'about', label: t('gallery.nav.about') },
-  { route: 'collection', label: t('gallery.nav.collection') },
-  { route: 'partners', label: t('gallery.nav.partners') },
-  { route: 'timeline', label: t('gallery.nav.timeline') },
-  { route: 'credits', label: t('gallery.nav.credits') },
-].map(item => ({
-  label: item.label,
-  href: `#/${item.route}`,
-  active: section.value === item.route,
-})).concat([{ label: t('gallery.nav.myCollection'), href: links.myCollection, external: true }]))
-
-const headerLinks = computed(() => [
-  { label: t('core.nav.home'), href: '#/' },
-  { label: t('gallery.nav.allGalleries'), href: `${links.galleries}/list/1`, external: true },
-])
-
-const footerLinks = computed(() => [
-  { label: t('gallery.footer.aboutMwnf'), href: links.about, external: true },
-  { label: t('gallery.footer.contact'), href: links.contact, external: true },
-  { label: t('gallery.footer.legalNotice'), href: links.legalNotice, external: true },
-  { label: t('gallery.footer.credits'), href: links.credits, external: true },
-  { label: t('gallery.footer.cookies'), href: links.cookies, external: true },
-])
-
 // The banner: the gallery's own image, captioned with the banner item's sheet.
 // gallery.json carries `banner_image_path` and `banner_item_id`; the image
 // lives on the legacy media server, so the address is built from the host
-// dataset.config.js declares.
+// dataset.config.js declares. Neither is expressible as a `config.banner`
+// function — those only ever see `{ section, locale, t }`, never the loaded
+// record — so both stay here, on every page, the same as before.
 const bannerImage = computed(() => chromeImage(gallery.value?.banner_image_path, 'hi_res'))
 const bannerCaption = computed(() => {
   const item = itemById.value.get(gallery.value?.banner_item_id)
@@ -81,23 +64,10 @@ const bannerCaption = computed(() => {
     country: labelOf('countries', item.country_id),
   }
 })
-
-// The section title over the narrow banner: the section the route declares,
-// named — each name written out for the check; a route with no section is
-// the error page.
-const SECTION_TITLES = computed(() => ({
-  collection: t('gallery.section.collection'),
-  database: t('gallery.section.database'),
-  partners: t('gallery.section.partners'),
-  timeline: t('gallery.section.timeline'),
-  about: t('gallery.section.about'),
-  credits: t('gallery.section.credits'),
-}))
-const sectionTitle = computed(() => SECTION_TITLES.value[section.value] ?? t('gallery.section.error'))
 </script>
 
 <template>
-  <PageShell
+  <SiteShell
     :languages="props.languages"
     :language="props.language"
     language-placement="header"
@@ -106,25 +76,16 @@ const sectionTitle = computed(() => SECTION_TITLES.value[section.value] ?? t('ga
     :header-eyebrow="isHome ? '' : t('gallery.nav.galleries')"
     :header-title="isHome ? '' : galleryName"
     header-title-href="#/"
-    :header-links="headerLinks"
-    :search="{ placeholder: t('gallery.search.placeholder'), submitLabel: t('catalogue.search.submit') }"
-    :banner-variant="isHome ? 'strip' : 'section'"
     :banner-image="bannerImage"
     :banner-caption="bannerCaption"
-    :banner-caption-label="t('gallery.banner.detailFrom')"
-    :banner-eyebrow="isHome ? t('gallery.banner.discoverGalleries') : ''"
-    :banner-title="isHome ? galleryName : sectionTitle"
-    :banner-enter="isHome ? { label: '»', href: '#/collection', ariaLabel: t('gallery.action.goToCollection') } : null"
-    :nav-links="navLinks"
+    :banner-title="isHome ? galleryName : undefined"
     :notice="{ title: t('gallery.notice.tip'), text: t('gallery.notice.databaseReplaced') }"
-    :footer-links="footerLinks"
     :footer-text="`${t('gallery.footer.copyright')} 2004–${currentYear}`"
-    @search="submitSearch"
     @update:language="emit('update:language', $event)"
   >
-    <template #header-brand><span class="logo-mark">MWNF</span></template>
+    <template #brand><span class="logo-mark">MWNF</span></template>
     <slot />
-  </PageShell>
+  </SiteShell>
 </template>
 
 <style scoped>
