@@ -129,6 +129,25 @@ describe('website smoke test', () => {
     app.unmount()
   }, 60000)
 
+  // metanull/carpets#40: `RecordView`'s default `source` slot renders the
+  // credit as soon as the website declares `site.origin` (dataset.config.js),
+  // independently of the sheet spec's own `citation.permalink: false`
+  // (composables/sheet.js) — that flag only drops the address from the "cite
+  // this page" sentence, which legacy's DXA sheets never printed either.
+  it('renders the source credit on the item sheet, addressed to this deployed site', async () => {
+    const [items] = await loadEntities(['items'])
+    const item = items[0]
+    const { app, host } = await mountSite(`#/item/${item.id}`)
+    await vi.waitFor(() => expect(host.querySelector('.mwnf-source-credit')).not.toBeNull(), { timeout: 20000 })
+    const link = host.querySelector('.mwnf-source-credit a')
+    // The full current route, `?lang=en` and all, follows the item's own
+    // path — the assertion only pins the two ends `sourceUrl()` guarantees.
+    const address = `${config.site.origin}/#/item/${item.id}`
+    expect(link.textContent).toBe(link.getAttribute('href'))
+    expect(link.getAttribute('href').startsWith(address)).toBe(true)
+    app.unmount()
+  }, 60000)
+
   // The glossary tool and the dynasty popouts in the item sheet's `related`
   // slot are the layout's own (metanull/carpets#35), not the local markup
   // and state this gallery used to carry: `GlossaryTool` and `DynastyList`
@@ -224,6 +243,12 @@ describe('website smoke test', () => {
     expect(host.textContent).toContain('Vienna')
     // The map is the layout's `PartnerMap`, not the deleted local component.
     expect(host.querySelector('.mwnf-partner-map')).not.toBeNull()
+    // metanull/carpets#40: this DXA gallery carries no exhibition-theme or
+    // other `EssayView` page for the credit to double-check against, so the
+    // partner profile — the other `RecordView` this site renders, with its
+    // own `citation: false` — stands in: the `source` slot is independent of
+    // the citation switch, so the credit still renders here too.
+    expect(host.querySelector('.mwnf-source-credit')).not.toBeNull()
     app.unmount()
   }, 60000)
 
@@ -339,8 +364,32 @@ describe('website smoke test', () => {
     expect(text).toContain('All MWNF Galleries')
     expect(text).toContain('Tip:')
     // Nothing rendered as a bare entry name, which is what a missing text
-    // looks like — there is no exception to throw for one.
-    expect(checkTextsRendered(host, { namespaces: ['carpets', 'gallery', 'core', 'layout'] })).toEqual([])
+    // looks like — there is no exception to throw for one. Every namespace a
+    // page on this site actually reads is listed, not just carpets' own — a
+    // raw shared key otherwise passes unseen (metanull/carpets#40): the
+    // record/sheet/timeline/partner pages read the neutral namespaces
+    // directly, on top of `gallery`, this site's own product section.
+    expect(checkTextsRendered(host, {
+      namespaces: ['carpets', 'core', 'layout', 'catalogue', 'record', 'sheet', 'timeline', 'partner', 'gallery'],
+    })).toEqual([])
+
+    app.unmount()
+  }, 20000)
+
+  // metanull/carpets#40: the footer's attribution and terms-of-use link come
+  // from the data package's `manifest.rights` (viewer-core's
+  // `useSiteRights()`), read by the layout's own `SiteShell` — nothing this
+  // site declares beyond the version pin.
+  it('renders the footer attribution and the terms-of-use link from the data package rights', async () => {
+    const { app, host } = await mountSite()
+
+    const attribution = host.querySelector('.mwnf-footer__attribution')
+    expect(attribution).not.toBeNull()
+    expect(attribution.textContent).toContain('Content © Museum With No Frontiers, used under the MWNF legal notice.')
+
+    const terms = attribution.querySelector('a.mwnf-footer__terms')
+    expect(terms.textContent).toBe('Terms of use')
+    expect(terms.getAttribute('href')).toBe('https://www.museumwnf.org/about/legal-notice')
 
     app.unmount()
   }, 20000)
