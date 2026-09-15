@@ -6,8 +6,8 @@
 // answer — the banner's own image and caption, the home page's title — and
 // the MWNF mark in the header.
 import { computed } from 'vue'
-import { useI18n, useSection, useSiteConfig } from '@metanull/viewer-core'
-import { SiteShell } from '@metanull/viewer-layout/components'
+import { useI18n, useSection, useSiteConfig } from '@museumwnf/viewer-core'
+import { SiteShell } from '@museumwnf/viewer-layout/components'
 import {
   gallery, chromeImage, itemById, labelOf, tr, defaultLang, manifest,
 } from './composables/useGalleryData.js'

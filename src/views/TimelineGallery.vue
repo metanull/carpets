@@ -1,7 +1,7 @@
 <script setup>
 import { RouterLink } from 'vue-router'
-import { BackLink, Pagination } from '@metanull/viewer-layout/content'
-import { CatalogueResultsView } from '@metanull/viewer-layout/views'
+import { BackLink, Pagination } from '@museumwnf/viewer-layout/content'
+import { CatalogueResultsView } from '@museumwnf/viewer-layout/views'
 import { timelineGallery } from '../composables/useTimeline.js'
 
 // The member items whose dates overlap the timeline search's country and

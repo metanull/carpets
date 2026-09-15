@@ -1,5 +1,5 @@
 <script setup>
-import { TextPageView } from '@metanull/viewer-layout/views'
+import { TextPageView } from '@museumwnf/viewer-layout/views'
 
 // The credits name this gallery's own curators, photographers and translators,
 // so there is nothing generic to inherit and the entry is this website's own —

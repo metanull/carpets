@@ -1,5 +1,5 @@
-import { mediaUrl, useCatalogueData, useDataPackage } from '@metanull/viewer-core'
-import { itemFromUidPath as legacyItemFromUidPath, partnerFromKey as legacyPartnerFromKey } from '@metanull/viewer-core/legacy'
+import { mediaUrl, useCatalogueData, useDataPackage } from '@museumwnf/viewer-core'
+import { itemFromUidPath as legacyItemFromUidPath, partnerFromKey as legacyPartnerFromKey } from '@museumwnf/viewer-core/legacy'
 import { computed } from 'vue'
 
 // The gallery's records, read the one way every website reads them: through
@@ -74,7 +74,7 @@ export function partnerObjectsRoute(partner, page = 1) {
 }
 
 // Legacy dbUid ⇄ item, and a partner's country/legacy id ⇄ partner:
-// `@metanull/viewer-core/legacy` decodes `backward_compatibility` the way
+// `@museumwnf/viewer-core/legacy` decodes `backward_compatibility` the way
 // every DXA site does, pure, over plain lists; these two wrappers bind it to
 // carpets' own `items`/`partners`/`countries` refs, so dataset.config.js's
 // legacy routes keep calling them with the arguments they already carry.

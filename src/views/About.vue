@@ -1,5 +1,5 @@
 <script setup>
-import { TextPageView } from '@metanull/viewer-layout/views'
+import { TextPageView } from '@museumwnf/viewer-layout/views'
 
 // `gallery.about.body` is a shared entry every gallery receives, holding the
 // generic *MWNF Galleries* text; this gallery overloads it in its own

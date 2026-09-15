@@ -1,5 +1,5 @@
 import { computed } from 'vue'
-import { dateRange, eraLabel, roundOutward, useTimelineEvents, yearBucketsFromRange } from '@metanull/viewer-core'
+import { dateRange, eraLabel, roundOutward, useTimelineEvents, yearBucketsFromRange } from '@museumwnf/viewer-core'
 import {
   timelines, countries, countryById, labelOf, items, tr, loadTranslations, defaultLang,
 } from './useGalleryData.js'
