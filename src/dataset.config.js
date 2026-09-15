@@ -118,7 +118,7 @@ export default {
   // legacy's DXA sheets never carried one). The GitHub Pages address until
   // the domain is decided — the same host and base path vite.config.js's
   // `base` serves the build under — so it changes together with the domain.
-  site: { origin: 'https://metanull.github.io/carpets' },
+  site: { origin: 'https://museumwithnofrontiers.github.io/carpets' },
 
   // The canonical routes, one view per page: a section is `/<section>`, a
   // record `/<section>/:id` with the package id, and the language, the page

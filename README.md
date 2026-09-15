@@ -37,7 +37,7 @@ in this repository holds a token.
 
 The texts every MWNF gallery shares — the menu, the item-sheet labels, the
 editorial pages about searching and about the Partners — come from
-[`viewer-i18n`](https://github.com/metanull/viewer-i18n) as the `gallery`
+[`viewer-i18n`](https://github.com/museumwithnofrontiers/viewer-i18n) as the `gallery`
 bundle. `locales/` holds only what belongs to *this* gallery, and may overload
 any shared entry by spelling out the same name: `gallery.about.body` is
 overloaded there with the Carpets text, while `carpets.credits.body` is a name
@@ -75,7 +75,7 @@ You only need a GitHub account and a browser. The files under `locales/` hold
 
 Texts shared with the other MWNF galleries — the menu, the labels of an item
 sheet, the page about how to search — are not here: they live in
-[`viewer-i18n`](https://github.com/metanull/viewer-i18n) and are edited there,
+[`viewer-i18n`](https://github.com/museumwithnofrontiers/viewer-i18n) and are edited there,
 the same way. This gallery can override any of them by writing the same entry
 name in its own file. The museum content itself arrives already translated in
 the dataset and is not edited anywhere.
@@ -110,7 +110,7 @@ request for the `viewer-layout` package — open an issue there.
 ## Deployment
 
 Every push to `main` builds and publishes the site to
-<https://metanull.github.io/carpets/> through the reusable workflows in
-[`metanull/viewer-workflows`](https://github.com/metanull/viewer-workflows).
+<https://museumwithnofrontiers.github.io/carpets/> through the reusable workflows in
+[`museumwithnofrontiers/viewer-workflows`](https://github.com/museumwithnofrontiers/viewer-workflows).
 The base path comes from `BASE_PATH` at build time and defaults to the
 repository name.
