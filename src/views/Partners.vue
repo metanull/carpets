@@ -1,8 +1,8 @@
 <script setup>
 import { RouterLink } from 'vue-router'
-import { I18nText } from '@metanull/viewer-core'
-import { BackLink } from '@metanull/viewer-layout/content'
-import { PartnerListView } from '@metanull/viewer-layout/views'
+import { I18nText } from '@museumwnf/viewer-core'
+import { BackLink } from '@museumwnf/viewer-layout/content'
+import { PartnerListView } from '@museumwnf/viewer-layout/views'
 import { partnerObjectsRoute, labelOf } from '../composables/useGalleryData.js'
 import { partnerList } from '../composables/partner.js'
 

@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { useI18n, useSiteConfig } from '@metanull/viewer-core'
-import { FeaturedPartners, SiblingGalleries } from '@metanull/viewer-layout/content'
+import { useI18n, useSiteConfig } from '@museumwnf/viewer-core'
+import { FeaturedPartners, SiblingGalleries } from '@museumwnf/viewer-layout/content'
 import {
   partners, partnerRoute, labelOf, tr, defaultLang, mdStrip,
   pickSiblings, siblingUrl, chromeImage,

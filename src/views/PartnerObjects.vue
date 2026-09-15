@@ -1,9 +1,9 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
-import { Pagination } from '@metanull/viewer-layout/content'
-import { CatalogueResultsView } from '@metanull/viewer-layout/views'
-import { BackLink } from '@metanull/viewer-layout/content'
+import { Pagination } from '@museumwnf/viewer-layout/content'
+import { CatalogueResultsView } from '@museumwnf/viewer-layout/views'
+import { BackLink } from '@museumwnf/viewer-layout/content'
 import { partnerById, partnerRoute, labelOf, tr, defaultLang } from '../composables/useGalleryData.js'
 import { partnerObjects } from '../composables/partner.js'
 

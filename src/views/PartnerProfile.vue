@@ -1,9 +1,9 @@
 <script setup>
 import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import { useI18n } from '@metanull/viewer-core'
-import { RecordLanguages, MediaGallery, PartnerMap, BackLink } from '@metanull/viewer-layout/content'
-import { RecordView } from '@metanull/viewer-layout/views'
+import { useI18n } from '@museumwnf/viewer-core'
+import { RecordLanguages, MediaGallery, PartnerMap, BackLink } from '@museumwnf/viewer-layout/content'
+import { RecordView } from '@museumwnf/viewer-layout/views'
 import { partnerObjectsRoute, labelOf, md } from '../composables/useGalleryData.js'
 import { partnerSheet } from '../composables/partner.js'
 

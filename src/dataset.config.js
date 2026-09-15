@@ -1,4 +1,4 @@
-import { languageLabels, loadEntities, mwnfLinks, offeredLanguages, sectionMeta, useDataPackage } from '@metanull/viewer-core'
+import { languageLabels, loadEntities, mwnfLinks, offeredLanguages, sectionMeta, useDataPackage } from '@museumwnf/viewer-core'
 import SiteShell from './SiteShell.vue'
 import { itemFromUidPath, partnerFromKey } from './composables/useGalleryData.js'
 
@@ -40,7 +40,7 @@ const SECTION_TITLES = {
 export default {
   // The dataset package this website renders. Must match the alias in
   // vite.config.js and the dependency in package.json.
-  datasetPackage: '@metanull/carpets-data',
+  datasetPackage: '@museumwnf/carpets-data',
 
   // English is the base language of every catalogue in the platform, so the
   // name the site is known by is the English one.

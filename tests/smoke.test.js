@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
-import { loadEntities, mergeMessages } from '@metanull/viewer-core'
+import { loadEntities, mergeMessages } from '@museumwnf/viewer-core'
 import {
   checkOfferedLanguages, checkRoutes, checkSectionMeta, checkTextsRendered, mountSite as mountApp,
-} from '@metanull/viewer-core/testing'
-import { catalogues as sharedTexts } from '@metanull/viewer-i18n/gallery'
+} from '@museumwnf/viewer-core/testing'
+import { catalogues as sharedTexts } from '@museumwnf/viewer-i18n/gallery'
 import ownTexts from '../locales/en.json'
 import config from '../src/dataset.config.js'
 
@@ -151,7 +151,7 @@ describe('website smoke test', () => {
   // The glossary tool and the dynasty popouts in the item sheet's `related`
   // slot are the layout's own (metanull/carpets#35), not the local markup
   // and state this gallery used to carry: `GlossaryTool` and `DynastyList`
-  // from `@metanull/viewer-layout/content`, each a native `<details>` toggle
+  // from `@museumwnf/viewer-layout/content`, each a native `<details>` toggle
   // with its own heading text.
   it('renders the layout glossary tool and dynasty popouts on the item sheet', async () => {
     // A 'Lotto' Carpet with the Ottoman dynasty attached — a record whose

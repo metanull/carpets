@@ -1,9 +1,9 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
-import { projectFamily, projectName, useI18n, useSiteConfig } from '@metanull/viewer-core'
-import { BackLink, DynastyList, GlossaryTool, RecordLanguages, RelatedRecords, SheetSection } from '@metanull/viewer-layout/content'
-import { RecordView } from '@metanull/viewer-layout/views'
+import { projectFamily, projectName, useI18n, useSiteConfig } from '@museumwnf/viewer-core'
+import { BackLink, DynastyList, GlossaryTool, RecordLanguages, RelatedRecords, SheetSection } from '@museumwnf/viewer-layout/content'
+import { RecordView } from '@museumwnf/viewer-layout/views'
 import {
   labelOf, partnerById, partnerRoute, dynastyById, translations, defaultLang, md, itemById,
 } from '../composables/useGalleryData.js'

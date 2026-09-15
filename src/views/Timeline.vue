@@ -1,6 +1,6 @@
 <script setup>
-import { I18nText } from '@metanull/viewer-core'
-import { TimelineResultsView } from '@metanull/viewer-layout/views'
+import { I18nText } from '@museumwnf/viewer-core'
+import { TimelineResultsView } from '@museumwnf/viewer-layout/views'
 import { timelineResults } from '../composables/useTimeline.js'
 
 // The timeline entrance, on the platform's composed timeline view: the

@@ -2,7 +2,7 @@
  * Global styles shared by every Carpets view: the palette the views and the
  * shell reference. The building blocks the legacy gallery's own site.css
  * duplicated (panels, selects, buttons, prose, project chips) are the
- * layout's `.mwnf-*` content classes now (`@metanull/viewer-layout/style.css`,
+ * layout's `.mwnf-*` content classes now (`@museumwnf/viewer-layout/style.css`,
  * imported in main.js) — this file carries only what is actually this
  * gallery's own: the palette, and the page reset.
  *
