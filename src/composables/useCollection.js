@@ -1,8 +1,14 @@
-import { projectName, useI18n } from '@museumwnf/viewer-core'
+import { projectLabel, useDataPackage, useI18n } from '@museumwnf/viewer-core'
 import {
   countries, countryById, tagById, tags,
   labelOf, itemRoute, tr, defaultLang, mdInline,
 } from './useGalleryData.js'
+
+// `tile()` below is called from a plain spec object (`collectionResults`),
+// not from within a component's own setup, so it reads the data package
+// through the manifest directly (`useDataPackage()` has no `inject()` in it,
+// unlike `useI18n()`) rather than through the `useProjects()` composable.
+const { manifest } = useDataPackage()
 
 // The catalogue spec: what this gallery's lists filter and search on. The
 // engine — query state, options, dates, pages, the boolean grammar — is
@@ -143,7 +149,7 @@ export function tile(item, t) {
       text.dates ?? '',
       labelOf('partners', item.partner_id),
       [text.location, labelOf('countries', item.country_id)].filter(Boolean).join(', '),
-      `${t('catalogue.results.forProject')} ${projectName(item.project_key, t)}`,
+      `${t('catalogue.results.forProject')} ${projectLabel(manifest, item.project_id, defaultLang) ?? ''}`,
     ].filter(Boolean),
     to: itemRoute(item),
   }

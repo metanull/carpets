@@ -111,6 +111,31 @@ export default {
   // addresses every DXA config repeats, carpets adding none of its own.
   links: { ...mwnfLinks },
 
+  // The source-database chip's colour, per project (epic #1727 phase 4):
+  // one entry for every project id `npm pack @museumwnf/carpets-data`
+  // carries in `manifest.projects` (checked 2026-09-19, carpets-data 1.0.9).
+  // The class names are `@museumwnf/viewer-layout`'s own fixed chip palette
+  // (`.mwnf-chip--<name>`, themed by its `--mwnf-project-<name>` tokens) —
+  // this site just says which project gets which one, by id, instead of
+  // computing it from a legacy project key at runtime. Comments name the
+  // project the way the manifest itself does (`manifest.projects[id].name.en`).
+  projectColors: {
+    '61c122ac-ea86-5462-8bab-6b86138c49b2': 'mwnf-chip--ISLandEPM', // Discover Islamic Art
+    '928f5e0d-53e3-5f53-b9c2-5af389c30dd4': 'mwnf-chip--ISLandEPM', // Explore Islamic Art Collections — shares Discover Islamic Art's colour
+    '76eaf6c2-8025-53bc-9e39-106803a3917e': 'mwnf-chip--DBA', // Discover Baroque Art
+    '0f031e22-6dc6-5ce6-b94b-9bb88345140c': 'mwnf-chip--AWE', // Sharing History - Arab-Ottoman-European relations in the 19th century.
+    'dcf7b4d2-03c8-568a-8209-2817950fe05e': 'mwnf-chip--DCA', // Discover Carpet Art — this gallery's own project
+    'a0817323-79ca-53fc-95ac-9f65ee2fcbac': 'mwnf-chip--Galleries', // MWNF Galleries
+    '09bed55d-efe6-50e0-8c24-1647bc9822eb': 'mwnf-chip--EXH', // The Table Is Set
+  },
+
+  // The "this item has been added within ..." notice on the item sheet
+  // (legacy's EPM-only note): the project id(s) it applies to, this site's
+  // own editorial choice, not a literal legacy key check. Carpets and
+  // amulets share this list by construction — both borrow from the same
+  // Explore Islamic Art Collections project.
+  noticeProjects: ['928f5e0d-53e3-5f53-b9c2-5af389c30dd4'], // Explore Islamic Art Collections
+
   // The absolute origin this build is deployed at (base path included),
   // read by viewer-core's `sourceUrl()` for the layout's `SourceCredit` (the
   // item sheet, the partner profile) — the item sheet's own citation stays
